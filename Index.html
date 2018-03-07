@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>ACESSO BIO - Web Frame</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <div style="text-align:center">
+        <div id="camera" style="width:640px;height:360px"></div>
+        <img id="img" style="width:640px;height:360px"/>
+    </div>
+</body>
+</html>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+<script src="Dependency/acesso_jpeg_camera_no_flash.js"></script>
+<script src="Dependency/acesso_load_image.js"></script>
+<script src="Dependency/acesso_camera_manager.js"></script>
+
+<script>
+    $(document).ready(function () {
+        var options = {
+            showFrame: true,
+            orientation: 'landscape',
+            width: 640,
+            height: 360,
+            allowFallbackFlash: false,
+            allowFallbackNativeCamera: true,
+            allowFallbackImport: true,
+            facingMode:'environment',
+            btnCamera_onClick: function (base64) {
+                console.log(base64);
+                $("#img").src = base64;                
+                Acesso.StopCamera();
+            },
+            import_onChange: function (base64) {
+                console.log(base64);
+                $("#img").src = base64;
+            }
+        }        
+
+        var acessoCameraManager = new AcessoCameraManager("#camera", options);
+        acessoCameraManager.InitCamera();
+        acessoCameraManager.GetBase64();
+    })
+</script>
