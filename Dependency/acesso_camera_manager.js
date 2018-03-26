@@ -7,11 +7,10 @@
             width: '1280px',
             height: '720px',
             showFrame: true,
-            facingMode: 'user',
+            facingMode:'user',
             allowFallbackFlash: false,
             allowFallbackNativeCamera: true,
-            allowFallbackImport: false,
-            imageCompression: 1,
+            allowFallbackImport:false,
             btnCamera_onClick: function (base64) { },
             import_onChange: function (base64) { },
         };
@@ -107,7 +106,7 @@
                 return this._temporary_base64;
             } else {
                 var snapshot = this._camera.capture();
-                return snapshot._canvas.toDataURL('image/jpeg', this.imageCompression);
+                return snapshot._canvas.toDataURL('image/jpeg');
             }
         }
 
@@ -146,7 +145,7 @@
             var that = this;
 
             //verifica se pode fazer o fallback
-            if (!this.options.allowFallbackNativeCamera && !this.options.allowFallbackImport)
+            if(!this.options.allowFallbackNativeCamera && !this.options.allowFallbackImport)
                 throw "AcessoCameraManagerLogger: O Fallback para a abertura da câmera nativa ou importação não está ativa ";
 
             //Cria o container do fallback
@@ -178,7 +177,7 @@
                         function (can) {
                             // base64 a ser transmitido
                             that._is_fallback_mode = true;
-                            that._temporary_base64 = can.toDataURL('image/jpeg', this.imageCompression);
+                            that._temporary_base64 = can.toDataURL('image/jpeg');
                             that.options.import_onChange(that.GetBase64());
                         },
                         {
