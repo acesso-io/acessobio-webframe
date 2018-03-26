@@ -304,9 +304,13 @@
                 JpegCamera._add_prefixed_style(this.video, "transform", "scalex(1.0)");
                 get_user_media_options = {
                     video: {
-                        facingMode: this.options.facingMode
+                        facingMode: this.options.facingMode,
+						width: (this.view_width > this.view_height ? 1280:720),
+						height: (this.view_width < this.view_height ? 1280:720)
                     }
                 };
+				this.video.videoWidth = get_user_media_options.video.width;
+				this.video.videoHeight = get_user_media_options.video.height;
                 that = this;
                 success = function (stream) {
                     that._remove_message();

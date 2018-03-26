@@ -1,3 +1,7 @@
+/*! Acesso LoadImage 1.0.0 | 2018-01-10
+     (c) 2018 Mateus Perdigão Domiciano
+*/
+
 !function (e) {
     "use strict";
     function t(e, i, a) {
