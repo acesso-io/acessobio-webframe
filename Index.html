@@ -5,9 +5,27 @@
     <meta charset="utf-8" />
 </head>
 <body>
-    <div style="text-align:center">
+    <div>
+        <div style="width:640px;">
+            <h3>Propriedades</h3>
+            <label>Width: </label><input id="width" type="text" value="640" />
+            <label>Height: </label><input id="height" type="text" value="360" />
+            <br /><br />
+            <label>Orientation: </label><select id="orientation"><option value="landscape">Landscape</option><option value="portrait">Portrait</option></select>
+            <label>Show Frame: </label><select id="showframe"><option value="true">True</option><option value="false">False</option></select>
+            <br /><br />
+            <label>Facing Mode: </label><select id="facingMode"><option value="environment">Environment</option><option value="user">User</option></select>
+            <br /><br />
+
+            <button id="btnInit">Iniciar</button>
+            <button id="btnStop">Stop</button>
+            <button id="btnCapture">Capturar</button>
+            <br /><br />
+        </div>
+        <div id="error"></div>
         <div id="camera" style="width:640px;height:360px"></div>
-        <img id="img" style="width:640px;height:360px"/>
+        <br /><br />
+        <img id="img" style="width:640px;height:360px" />
     </div>
 </body>
 </html>
@@ -19,28 +37,54 @@
 
 <script>
     $(document).ready(function () {
-        var options = {
-            showFrame: true,
-            orientation: 'landscape',
-            width: 640,
-            height: 360,
-            allowFallbackFlash: false,
-            allowFallbackNativeCamera: true,
-            allowFallbackImport: true,
-            facingMode:'environment',
-            btnCamera_onClick: function (base64) {
-                console.log(base64);
-                $("#img").src = base64;                
-                Acesso.StopCamera();
-            },
-            import_onChange: function (base64) {
-                console.log(base64);
-                $("#img").src = base64;
-            }
-        }        
+        var acessoCameraManager = null;
 
-        var acessoCameraManager = new AcessoCameraManager("#camera", options);
-        acessoCameraManager.InitCamera();
-        acessoCameraManager.GetBase64();
+        $('#btnInit').click(function () {
+            try {
+                if (acessoCameraManager != null)
+                    acessoCameraManager.StopCamera();
+
+                var options = {
+                    showFrame: JSON.parse($('#showframe').val()),
+                    orientation: $('#orientation').val(),
+                    width: parseInt($('#width').val()),
+                    height: parseInt($('#height').val()),
+                    allowFallbackFlash: false,
+                    allowFallbackNativeCamera: true,
+                    allowFallbackImport: true,
+                    facingMode: $('#facingMode').val(),
+                    btnCamera_onClick: function (base64) {
+                        $("#img").attr('src', base64);
+                    },
+                    import_onChange: function (base64) {
+                        $("#img").src = base64;
+                    }
+                }
+
+                acessoCameraManager = new AcessoCameraManager("#camera", options);
+                acessoCameraManager.InitCamera();
+            } catch (ex) {
+                $('#error').html(ex);
+            }
+
+        })
+
+        $('#btnStop').click(function () {
+            try {
+                acessoCameraManager.StopCamera();
+            } catch (ex) {
+                $('#error').html(ex);
+            }
+        })
+
+        $('#btnCapture').click(function () {
+            try {
+                $("#img").attr('src', acessoCameraManager.GetBase64());
+            } catch (ex) {
+                $('#error').html(ex);
+            }
+        })
+
+        $('#btnInit').trigger('click');
     })
 </script>
