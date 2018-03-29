@@ -32,7 +32,7 @@ $(document).ready(function () {
 
         var options = {
             showFrame: true, // Habilita ou desabilita a silhueta
-            orientation: 'landscape', // landscape ou portrait
+            orientation: 'landscape', // Landscape ou portrait
             width: 640, // Largura do frame (Sempre deve respeitar a proporção HD (720*1280))
             height: 360, // Altura do frame (Sempre deve respeitar a proporção HD (720*1280))
             allowFallbackNativeCamera: true, // Em caso de falha abre a câmera nativa do celular
@@ -44,7 +44,7 @@ $(document).ready(function () {
             import_onChange: function (base64) { // Handler quando o botão importar é acionado
                 console.log(base64);
             }
-        }        
+        };     
         
         // Inicia a biblioteca 
         var acessoCameraManager = new AcessoCameraManager("#camera", options);
@@ -55,6 +55,6 @@ $(document).ready(function () {
         
         // Finaliza o fluxo de captura
         //acessoCameraManager.StopCamera();
-    })
+});
 
 ```
