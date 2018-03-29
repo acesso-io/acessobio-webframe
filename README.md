@@ -50,7 +50,7 @@ $(document).ready(function () {
         var acessoCameraManager = new AcessoCameraManager("#camera", options);
         acessoCameraManager.InitCamera();
         
-        // CCaptura o frame atual do fluxo de captura
+        // Captura o frame atual do fluxo de captura
         //acessoCameraManager.GetBase64();
         
         //Finaliza o fluxo de captura
