@@ -46,14 +46,14 @@ $(document).ready(function () {
             }
         }        
         
-        //Inicia a biblioteca 
+        // Inicia a biblioteca 
         var acessoCameraManager = new AcessoCameraManager("#camera", options);
         acessoCameraManager.InitCamera();
         
         // Captura o frame atual do fluxo de captura
         //acessoCameraManager.GetBase64();
         
-        //Finaliza o fluxo de captura
+        // Finaliza o fluxo de captura
         //acessoCameraManager.StopCamera();
     })
 
