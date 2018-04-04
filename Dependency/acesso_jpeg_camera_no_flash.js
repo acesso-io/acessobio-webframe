@@ -301,7 +301,7 @@
                 this.video.autoplay = true;
                 this.video.setAttribute('playsinline', '');
                 this.video.playsinline = true
-                JpegCamera._add_prefixed_style(this.video, "transform", "scalex(1.0)");
+                JpegCamera._add_prefixed_style(this.video, "transform", "scalex(-1.0)");
                 get_user_media_options = {
                     video: {
                         facingMode: this.options.facingMode,
@@ -381,7 +381,7 @@
                 this.displayed_canvas.style.left = 0;
                 this.displayed_canvas.style.position = "absolute";
                 this.displayed_canvas.style.zIndex = 2;
-                JpegCamera._add_prefixed_style(this.displayed_canvas, "transform", "scalex(1.0)");
+                JpegCamera._add_prefixed_style(this.displayed_canvas, "transform", "scalex(-1.0)");
                 return this.container.appendChild(this.displayed_canvas);
             };
 
@@ -622,7 +622,7 @@
             that = this;
             setTimeout(function () {
                 that._extra_canvas || (that._extra_canvas = that.camera._engine_get_canvas(that));
-                JpegCamera._add_prefixed_style(that._extra_canvas, "transform", "scalex(1.0)");
+                JpegCamera._add_prefixed_style(that._extra_canvas, "transform", "scalex(-1.0)");
                 return callback.call(that, that._extra_canvas);
             }, 1);
             return true;
