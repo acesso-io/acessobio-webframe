@@ -17,6 +17,11 @@
             <label>Facing Mode: </label><select id="facingMode"><option value="environment">Environment</option><option value="user">User</option></select>
             <br /><br />
 
+            <label>Allow Native Camera Fallback: </label><select id="allowFallbackNativeCamera"><option value="true">True</option><option value="false">False</option></select>
+            <br /><br />
+            <label>Allow Import Fallback: </label><select id="allowFallbackImport"><option value="true">True</option><option value="false">False</option></select>
+            <br /><br />
+
             <button id="btnInit">Iniciar</button>
             <button id="btnStop">Stop</button>
             <button id="btnCapture">Capturar</button>
@@ -41,7 +46,7 @@
 
         $('#btnInit').click(function () {
             try {
-                if (acessoCameraManager != null)
+                if (acessoCameraManager != null && acessoCameraManager._is_fallback_mode == false)
                     acessoCameraManager.StopCamera();
 
                 var options = {
@@ -49,14 +54,19 @@
                     orientation: $('#orientation').val(),
                     width: parseInt($('#width').val()),
                     height: parseInt($('#height').val()),
-                    allowFallbackFlash: false,
-                    allowFallbackNativeCamera: true,
-                    allowFallbackImport: true,
+                    allowFallbackNativeCamera: JSON.parse($('#allowFallbackNativeCamera').val()),
+                    allowFallbackImport: JSON.parse($('#allowFallbackImport').val()),
                     facingMode: $('#facingMode').val(),
                     btnCamera_onClick: function (base64) {
+                        $("#img").attr('width', $('#width').val());
+                        $("#img").attr('height', $('#height').val());
+
                         $("#img").attr('src', base64);
                     },
                     import_onChange: function (base64) {
+                        $("#img").attr('width', $('#width').val());
+                        $("#img").attr('height', $('#height').val());
+
                         $("#img").src = base64;
                     }
                 }
