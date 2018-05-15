@@ -75,7 +75,7 @@
 
         JpegCamera.prototype._error_occured = false;
 
-        JpegCamera.StatsCaptureScale = 0.2;
+        JpegCamera.StatsCaptureScale = 1;
 
         JpegCamera.prototype.get_stats = function (callback) {
             var snapshot, that;
