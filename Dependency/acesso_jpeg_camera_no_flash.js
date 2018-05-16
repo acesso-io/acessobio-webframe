@@ -1,28 +1,25 @@
 ﻿/*! JpegCamera 1.3.3 | 2016-09-18
     (c) 2013 Adam Wrobel
     https://amw.github.io/jpeg_camera */
-/*! Acesso JpegCamera 1.0.0 | 2018-01-10
-     (c) 2018 Mateus Perdigão Domiciano
-*/
 (function () {
     var JpegCamera, JpegCameraHtml5, Snapshot, Stats, can_play, check_canvas_to_blob, mpeg_audio, vorbis_audio, _ref,
-      __hasProp = {}.hasOwnProperty,
-      __extends = function (child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+        __hasProp = {}.hasOwnProperty,
+        __extends = function (child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
     JpegCamera = (function () {
         JpegCamera.DefaultOptions = {
-            on_debug: function (message) {
-                if (console && console.log) {
-                    return console.log("JpegCamera: " + message);
-                }
-            },
+            //shutter_ogg_url: "/jpeg_camera/shutter.ogg",
+            //shutter_mp3_url: "/jpeg_camera/shutter.mp3",
+            //swf_url: "/jpeg_camera/jpeg_camera.swf",
+            on_debug: null,
             quality: 0.9,
             shutter: true,
             mirror: false,
             timeout: 0,
             retry_success: false,
             scale: 1.0,
-            facingMode: 'user'
+            facingMode: 'user',
+            scalex: "scalex(1.0)"
         };
 
         JpegCamera._canvas_supported = !!document.createElement('canvas').getContext;
@@ -47,6 +44,7 @@
             this.container.style.position = "relative";
             container.appendChild(this.container);
             this.options = this._extend({}, this.constructor.DefaultOptions, options);
+            this.options.scalex = (this.options.facingMode == 'user' ? "scalex(-1.0)" : "scalex(1.0)");
             this._engine_init();
         }
 
@@ -77,7 +75,7 @@
 
         JpegCamera.prototype._error_occured = false;
 
-        JpegCamera.StatsCaptureScale = 0.2;
+        JpegCamera.StatsCaptureScale = 1;
 
         JpegCamera.prototype.get_stats = function (callback) {
             var snapshot, that;
@@ -288,7 +286,7 @@
                 this.message.style.paddingRight = "" + horizontal_padding + "px";
                 this.message.style.position = "absolute";
                 this.message.style.zIndex = 3;
-                this.message.innerHTML = "Por favor, habilite o uso da câmera quando for pedido pelo navegador.<br><br>" + "Procure por um icone ce câmera na barra de endereços.";
+                this.message.innerHTML = "Por favor, habilite o uso da câmera quando for pedido pelo navegador.<br><br>" + "Procure por um icone de câmera na barra de endereços.";
                 this.container.appendChild(this.message);
                 this.video_container = document.createElement("div");
                 this.video_container.style.width = "" + this.view_width + "px";
@@ -301,16 +299,20 @@
                 this.video.autoplay = true;
                 this.video.setAttribute('playsinline', '');
                 this.video.playsinline = true
-                JpegCamera._add_prefixed_style(this.video, "transform", "scalex(-1.0)");
+                JpegCamera._add_prefixed_style(this.video, "transform", this.options.scalex);
+                //if (window.AudioContext) {
+                //    if (can_play(vorbis_audio)) {
+                //        this._load_shutter_sound(this.options.shutter_ogg_url);
+                //    } else if (can_play(mpeg_audio)) {
+                //        this._load_shutter_sound(this.options.shutter_mp3_url);
+                //    }
+                //}
                 get_user_media_options = {
                     video: {
                         facingMode: this.options.facingMode,
-						width: (this.view_width > this.view_height ? 1280:720),
-						height: (this.view_width < this.view_height ? 1280:720)
+                        height: 720, width: 1280
                     }
                 };
-				this.video.videoWidth = get_user_media_options.video.width;
-				this.video.videoHeight = get_user_media_options.video.height;
                 that = this;
                 success = function (stream) {
                     that._remove_message();
@@ -381,7 +383,7 @@
                 this.displayed_canvas.style.left = 0;
                 this.displayed_canvas.style.position = "absolute";
                 this.displayed_canvas.style.zIndex = 2;
-                JpegCamera._add_prefixed_style(this.displayed_canvas, "transform", "scalex(-1.0)");
+                JpegCamera._add_prefixed_style(this.displayed_canvas, "transform", this.options.scalex);
                 return this.container.appendChild(this.displayed_canvas);
             };
 
@@ -622,7 +624,7 @@
             that = this;
             setTimeout(function () {
                 that._extra_canvas || (that._extra_canvas = that.camera._engine_get_canvas(that));
-                JpegCamera._add_prefixed_style(that._extra_canvas, "transform", "scalex(-1.0)");
+                JpegCamera._add_prefixed_style(that._extra_canvas, "transform", this.options.scalex);
                 return callback.call(that, that._extra_canvas);
             }, 1);
             return true;
