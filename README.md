@@ -1,4 +1,4 @@
-# Mobbio Web
+# AcessoBio Web Frame
 
 Este projeto visa facilitar a implementação do frame de captura biométrica via JavaScript nativo através de algoritimos de abertura de câmera modernos e visão computacional e abertura de câmeras . Ajudando desta forma no melhor enquadramento para captura e otimizando as imagens antes de serem enviadas ao motor biomé
 trico.
