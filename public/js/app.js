@@ -351,7 +351,6 @@ const takePicture = () => {
         let base64 = cameraCanvas.toDataURL("image/jpeg");
         onSuccessCaptureJS(base64);
         
-      //  sendData();
         stopStuffsAfterTake();
         setTimeout(() => { completedAnimation(); }, 2000);
     } else {
@@ -990,19 +989,5 @@ window.addEventListener('orientationchange', orientationChange);
 navigator.mediaDevices.ondevicechange = orientationChange;
 
 
-const sendData = () => {
-    subPath = ""; //comentar ao subir no squad
-    let log = ` Silhuette { w: ${mWidth} h: ${mHeight} }, Video { w: ${cameraVideo.offsetWidth} h: ${cameraVideo.offsetHeight} radio: ${aspectRatioVideo} }, Screen { w: ${screen.width} h: ${screen.height} }, Plataform: ${JSON.stringify(platform).toString()}`;
-    $.ajax({
-        url: getAppPartURL("Home/Send"),
-        method: "POST",
-        data: { DeviceModel: platform.ua, Base64Center: resultCamera.base64, log: log }
-    })
-        .done(() => {
-            //console.log('foi');
-        }).fail(() => {
-            //alert('erro ao enviar, nos avise fazendo favor.');
-        });
-};
 
 
