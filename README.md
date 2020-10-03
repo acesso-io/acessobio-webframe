@@ -16,10 +16,9 @@ Esta biblioteca utiliza os recursos nativos do HTML 5, JavaScript e CSS e funcio
 - Suporte nativo em navegadores modernos, como o Google Chrome, Firefox, Opera e Edge para Android e Safari para iOS. 
 - Browsers com suporte a WebRTC. 
 
-***O câmera inteligente por usar visão computacional com as tecnologias face-api e tfjs, 
-   normalmente celurares com Android 6 ou menor e Iphone4 ou menor não possuem suporte aos recursos necessários para o funcionamento das mesmas
-   tecnologias, portanto nesses casos a câmera normal irá aparecer.
-***
+**Nota: O câmera inteligente por usar visão computacional com as tecnologias face-api e tfjs, 
+   normalmente celurares com Android 6 ou menor, Iphone 4 ou menor, e alguns celulares que não possuem suporte aos recursos necessários para o funcionamento das mesmas
+   tecnologias, portanto nesses casos a câmera normal irá aparecer.***
 
  ## Características
 
