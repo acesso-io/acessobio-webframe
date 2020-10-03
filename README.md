@@ -69,7 +69,7 @@ COLOR_SILHUETTE_SECONDARY: Cor em hexadecimal que ao não encontrar a face ou n�
 
 O método onSuccessCaptureJS retorna um objeto com as seguintes propredades:
 
-```
+```javascript
 {
     base64: string,
     Log: {
