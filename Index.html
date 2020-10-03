@@ -9,14 +9,11 @@
     <meta name="application-name" content="Camera app">
     <meta name="apple-mobile-web-app-title" content="Camera app">
     <meta itemprop="description" content="Captura de selfie">
-    <!-- <meta itemprop="image" content="../../../images/webrtc-icon-192x192.png"> -->
     <meta itemprop="name" content="Captura de selfie">
     <meta name="mobile-web-app-capable" content="yes">
     <meta id="theme-color" name="theme-color" content="#ffffff">
 
-    <!-- Name of the app -->
     <title>Captura de selfie</title>
-    <!-- Links to icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="public/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="public/icons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="public/icons/favicon-16x16.png">
@@ -24,106 +21,105 @@
     <meta name="msapplication-TileColor" content="#603cba">
     <meta name="theme-color" content="#ffffff">
 
-    <!-- Link to main style sheet -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="public/css/style.css">
-</head>
-
-<div id="box-camera">
-    <!-- Camera sensor -->
-    <canvas id="camera--canvas"></canvas>
-    <!-- Camera view -->
-    <video id="camera--video" autoplay="" playsinline="" muted="" controls="false" webkit-playsinline="true" playsinline="true"></video>
-
-    <!-- Canvas landmarks -->
-    <canvas id="camera--overlay"></canvas>
-
-    <!-- Camera output -->
-    <img src="" alt="" id="camera--output" style="display: none;">
-
-    <!-- Camera trigger -->
-    <img id="camera--trigger" src="camera.svg" title="Tirar foto" />
-
-    <!-- Loading ... -->
-    <div id="box--loading" style="display: none;">
-        <div class="box-in">
-            <div class="loader">Loading...</div>
-        </div>
-    </div>
-
-    <div id="box--orientation" style="display: none;">
-        <div class="box-in">
-            <div class="text">Mantenha o celular no modo Portrait:</div>
-            <img id="lock-image" src="public/images/lock.svg" alt="Lock" />
-        </div>
-    </div>
-
-    <!-- Support ... -->
-    <div id="box--support" style="display: none;">
-        <div class="box-in">
-            <div class="text">Navegadores permitidos:</div>
-            <ul class="browsers">
-                <li class="li-android"><img src="public/icons/chrome.png" alt="Chrome" /></li>
-                <li class="li-android"><img src="public/icons/edge.png" alt="Edge" /></li>
-                <li class="li-android"><img src="public/icons/opera.png" alt="Opera" /></li>
-                <li class="li-android"><img src="public/icons/firefox.png" alt="Firefox" /></li>
-                <li class="li-ios"><img src="public/icons/safari.png" alt="Safari" /></li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Completed ... -->
-    <div id="box--completed" style="display: none;">
-        <div class="box-in">
-            <div id="success-checkmark" class="success-checkmark">
-                <div class="check-icon">
-                    <span class="icon-line line-tip"></span>
-                    <span class="icon-line line-long"></span>
-                    <div class="icon-circle"></div>
-                    <div class="icon-fix"></div>
-                </div>
-            </div>
-            <button id="reinit" class="btn">Reiniciar</button>
-        </div>
-    </div>
-</div>
-</div>
     <script src="public/js/plataform.js"></script>
     <script src="public/js/adapter-latest.js"></script>
-    <script src="public/js/app.js"></script>
+    <script src="public/js/face-api.js"></script>
+    <link async href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link async rel="stylesheet" href="public/css/style.css">
+	<script src="public/js/app.js"></script>
+</head>
+
+<body>
+    <!-- Camera -->
+    <div id="box-camera">
+        <span id="message"></span>
+        <!-- Camera sensor -->
+        <canvas id="camera--canvas"></canvas>
+        <!-- Camera view -->
+        <video id="camera--video" autoplay="" playsinline="" muted="" controls="false" webkit-playsinline="true" playsinline="true"></video>
+
+        <!-- Canvas landmarks -->
+        <canvas id="camera--overlay"></canvas>
+
+        <!-- Camera trigger -->
+        <img id="camera--trigger" src="camera.svg" />
+
+        <!-- Popup Loading ... -->
+        <div id="box--loading" style="display: none;">
+            <div class="box-in">
+                <div class="loader">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Popup Orientation ... -->
+        <div id="box--orientation">
+            <div class="box-in">
+                <div class="text">Mantenha o celular no modo Portrait:</div>
+                <img id="lock-image" src="public/images/lock.svg" alt="Lock" />
+            </div>
+        </div>
+
+        <!-- Popup Support ... -->
+        <div id="box--support" style="display: none;">
+            <div class="box-in">
+                <div class="text">Navegadores permitidos:</div>
+                <ul class="browsers">
+                    <li class="li-android"><img src="public/icons/chrome.png" alt="Chrome" /></li>
+                    <li class="li-android"><img src="public/icons/edge.png" alt="Edge" /></li>
+                    <li class="li-android"><img src="public/icons/opera.png" alt="Opera" /></li>
+                    <li class="li-android"><img src="public/icons/firefox.png" alt="Firefox" /></li>
+                    <li class="li-ios"><img src="public/icons/safari.png" alt="Safari" /></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Popup Completed ... -->
+        <div id="box--completed" style="display: none;">
+            <div class="box-in">
+                <div id="success-checkmark" class="success-checkmark">
+                    <div class="check-icon">
+                        <span class="icon-line line-tip"></span>
+                        <span class="icon-line line-long"></span>
+                        <div class="icon-circle"></div>
+                        <div class="icon-fix"></div>
+                    </div>
+                </div>
+                <button id="reinit" class="btn">Reiniciar</button>
+                <div id="resultLiveness" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+		const setTypeProcess = (type) => {
+			let _type = parseInt(type);
+			if (_type === TYPE_CAMERA.CAMERA_NORMAL) {
+				return TYPE_CAMERA.CAMERA_NORMAL;
+			}
+			else if (_type === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+				return TYPE_CAMERA.CAMERA_INTELIGENCE;
+			}
+			else {
+				return TYPE_CAMERA.CAMERA_NORMAL;
+			}
+		};
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+			let _type = setTypeProcess(getUrlVars()["type"]);
+
+            onSuccessCaptureJS = onSuccessCapture;
+            onFailedCaptureJS = onFailedCapture;
+
+            function onSuccessCapture(obj) {
+                console.log(obj);
+            }
+
+            function onFailedCapture(err) {
+                console.log(err);
+            }
+ 
+            init(_type, '#297fff', '#fff');
+        });
+    </script>
 </body>
-
-<script>
-
-    function ready() {
-      
-      onSuccessCaptureJS = onSuccessCapture;
-      onFailedCaptureJS = onFailedCapture;
-  
-      function onSuccessCapture(base64) {
-        console.log(base64);
-      }
-  
-      function onFailedCapture(err) {
-        console.log(err);
-      }
-  
-  
-    }
-
-    function completed() {
-    document.removeEventListener("DOMContentLoaded", completed);
-    window.removeEventListener("load", completed);
-    ready();
-  }
-
-  if (document.readyState === "complete" ||
-    (document.readyState !== "loading")) {
-    ready(); // está pronto!
-  } else { // ainda não está pronto...
-    document.addEventListener("DOMContentLoaded", completed);
-    window.addEventListener("load", completed);
-  }
-</script>  
-
 </html>

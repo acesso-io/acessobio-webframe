@@ -7,6 +7,94 @@ let constraintsBase = {
     audio: false
 };
 
+const isMobile = () => {
+    return navigator.userAgent.match(/Android/i) ||
+        navigator.userAgent.match(/webOS/i) ||
+        navigator.userAgent.match(/iPhone/i) ||
+        navigator.userAgent.match(/iPad/i) ||
+        navigator.userAgent.match(/iPod/i) ||
+        navigator.userAgent.match(/BlackBerry/i) ||
+        navigator.userAgent.match(/Windows Phone/i)
+        ? true
+        : false;
+};
+
+const isIOS = () => {
+    return navigator.userAgent.match(/webOS/i) ||
+        navigator.userAgent.match(/iPhone/i) ||
+        navigator.userAgent.match(/iPad/i) ||
+        navigator.userAgent.match(/iPod/i)
+        ? true
+        : false;
+};
+
+const isAndroid = () => {
+    return navigator.userAgent.match(/Android/i)
+        ? true
+        : false;
+};
+
+const verifyAndSetPopupNotSupportBrowser = () => {
+
+    let _isChrome = platform.description.toLowerCase().indexOf('chrome') > -1;
+    let _isFirefox = platform.description.toLowerCase().indexOf('firefox') > -1;
+    let _isSafari = platform.description.toLowerCase().indexOf('safari') > -1;
+    let _isEdge = platform.description.toLowerCase().indexOf('edge') > -1;
+    let _isOpera = platform.description.toLowerCase().indexOf('opera') > -1;
+
+    if (isMobile()) {
+        if (isAndroid()) {
+
+            if (_isChrome || _isFirefox || _isEdge || _isFirefox) {
+                return true;
+            }
+            else {
+                document.getElementById('box--support').classList.remove("safari");
+                document.getElementById('box--support').classList.add("android");
+                document.getElementById('box--support').style.display = 'block';
+                return false;
+            }
+        }
+        else if (isIOS()) {
+            if (_isSafari) {
+                return true;
+            }
+            else {
+                document.getElementById('box--support').classList.remove("android");
+                document.getElementById('box--support').classList.add("safari");
+                document.getElementById('box--support').style.display = 'block';
+                return false;
+            }
+        }
+    }
+    else {
+        if (!isIOS()) {
+            if (_isChrome || _isOpera || _isEdge || _isFirefox) {
+                return true;
+            }
+            else {
+                document.getElementById('box--support').classList.remove("safari");
+                document.getElementById('box--support').classList.add("android");
+                document.getElementById('box--support').style.display = 'block';
+                return false;
+            }
+        }
+        else if (isIOS()) {
+            if (_isSafari && (_isChrome && _isOpera && _isEdge && _isFirefox)) {
+                return true;
+            }
+            else {
+                document.getElementById('box--support').classList.remove("android");
+                document.getElementById('box--support').classList.add("safari");
+                document.getElementById('box--support').style.display = 'block';
+                return false;
+            }
+        }
+    }
+};
+
+const isSupportBrowser = verifyAndSetPopupNotSupportBrowser();
+
 let videoOrientation;
 let track = null;
 let cameraOpen;
@@ -25,26 +113,26 @@ let mWidth = 0;
 let mHeight = 0;
 let resolutionWidth = 1280;
 let resolutionHeight = 720;
-let _resolutionWidth = 1280;
-let _resolutionHeight = 720;
-
-var isResolutionRead = false;
-
+let isResolutionRead = false;
 var subPath = window.location.pathname + '/';
 let forwardTimes = [];
 let avgTimeInMs;
 
+let isCaptureReady = false;
 let isLoading = false;
 let videoSourceInfoId;
 
-/** Delegates variable region */
+let isFaceApiIsRunning = false;
+let counterIsRunning = 0;
+
 var onSuccessCaptureJS;
 var onFailedCaptureJS;
-/** End region */
 
 let TYPE_PROCESS;
-const TYPE_CAMERA = {
-    CAMERA_NORMAL: 1
+let TYPE_PROCESS_INITIAL;
+var TYPE_CAMERA = {
+    CAMERA_NORMAL: 1,
+    CAMERA_INTELIGENCE: 2
 };
 
 let FLOW;
@@ -52,17 +140,60 @@ const FLOW_TYPE = {
     CLOSE: 1
 };
 
+let isCentralized = false;
+let isTimerTaking = false;
+let timerTake;
+
 const SILHUETTE_CONFIGURATIONS = {
     CLOSE: {
-        WIDTH: 285,
-        HEIGHT: 456
+        WIDTH: isMobile() ? 285 : 342,
+        HEIGHT: isMobile() ? 456 : 547.2
     }
 };
 
+const PERCENT_FACE_TOP_BY_VIDEO_THRESHOLD = {
+    CLOSE: {
+        MIN: 36,
+        MAX: 41
+    }
+};
+
+let COLOR_SILHUETTE = {
+    PRIMARY: '#297fff',
+    SECONDARY: '#fff'
+};
+
+let totalSeconds = 0;
+let isTimerSessionContinueRunning = false;
+let timerSession;
+
 let resultCamera = {
-    type: null,
     base64: null
 };
+
+let _centralized = {
+    silhoutteWidth: null,
+    topSilhuetteThresholdVertical: null,
+    bottomSilhuetteThresholdVertical: null,
+    inSilhuetteThresholdHorizontal: null,
+    overSilhuetteThresholdHorizontal: null,
+    faceTurnedSilhuetteThresholdHorizontal: null,
+    CSPWidthLeft: null,
+    CSPWidthRight: null,
+    CSPHeightTop: null,
+    CSPHeightBottom: null,
+    distanceLeftByNose: null,
+    distanceRightByNose: null,
+    differenceInDistance: null,
+    differenceLeftY: null,
+    differenceRightY: null,
+    differenceNoseYThreshold: null
+};
+
+
+let minConfidence = 0.5;
+let inputSize = 224;
+let scoreThreshold = 0.5;
 
 // Opera 8.0+
 const isOpera =
@@ -83,60 +214,22 @@ const isSafari =
         (typeof safari !== 'undefined' && safari.pushNotification)
     );
 
-// Internet Explorer 6-11
-const isIE = /*@cc_on!@*/ false || !!document.documentMode;
-
-// Edge 20+
-const isEdge = !isIE && !!window.StyleMedia;
-
 // Chrome 1 - 79
 const isChrome =
     !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
 
-// Edge (based on chromium) detection
-const isEdgeChromium = isChrome && navigator.userAgent.indexOf('Edg') != -1;
-
-// Blink engine detection
-const isBlink = (isChrome || isOpera) && !!window.CSS;
-
 // video da abertura da câmera
-const cameraVideo = document.querySelector('#camera--video');
-// imagem capturada
-const cameraOutput = document.querySelector('#camera--output');
+let cameraVideo;
 // canvas utilizado na captura
-const cameraCanvas = document.querySelector('#camera--canvas');
+let cameraCanvas;
 // canvas overlay (landmarks)
-const cameraOverlay = document.querySelector('#camera--overlay');
+let cameraOverlay;
 // botão de captura
-const buttonCapture = document.querySelector('#camera--trigger');
+let buttonCapture;
 // loading
-const boxLoading = document.querySelector('#box--loading');
+let boxLoading;
 // box da câmera
-const boxCamera = document.querySelector('#box-camera');
-
-const isMobile = () =>
-    navigator.userAgent.match(/Android/i) ||
-        navigator.userAgent.match(/webOS/i) ||
-        navigator.userAgent.match(/iPhone/i) ||
-        navigator.userAgent.match(/iPad/i) ||
-        navigator.userAgent.match(/iPod/i) ||
-        navigator.userAgent.match(/BlackBerry/i) ||
-        navigator.userAgent.match(/Windows Phone/i)
-        ? true
-        : false;
-
-const isIOS = () =>
-    navigator.userAgent.match(/webOS/i) ||
-        navigator.userAgent.match(/iPhone/i) ||
-        navigator.userAgent.match(/iPad/i) ||
-        navigator.userAgent.match(/iPod/i)
-        ? true
-        : false;
-
-const isAndroid = () =>
-    navigator.userAgent.match(/Android/i)
-        ? true
-        : false;
+let boxCamera;
 
 const getAndroidVersion = (ua) => {
     ua = (ua || navigator.userAgent).toLowerCase();
@@ -192,16 +285,14 @@ const gotDevices = (deviceInfos) => {
 };
 
 const setTrack = (mediaStream) => {
-
     if (mediaStream) {
         track = mediaStream.getVideoTracks()[0];
         if (track.getSettings()) {
-            if(!isResolutionRead) {
+            if (!isResolutionRead) {
                 isResolutionRead = true;
                 resolutionWidth = track.getSettings().width;
                 resolutionHeight = track.getSettings().height;
             }
-            
         }
         setConstraint(track.getConstraints());
     }
@@ -314,7 +405,7 @@ const startCamera = () => {
         .getUserMedia(getConstraints())
         .then(setMobileStyle())
         .then(gotStream)
-        .then(loadMask())
+        .then(loadMask(COLOR_SILHUETTE.SECONDARY))
         .then(calcBtnCapturePos)
         .then(calcMarginMask)
         .catch((error) => {
@@ -330,100 +421,6 @@ const newGuid = () => {
     });
 };
 
-/**
- * Captura da foto
- */
-const takePicture = () => {
-    if (cameraOpen) {
-        showBoxLoading(false);
-        buttonCapture.style.display = 'none';
-        // canvas
-        cameraCanvas.width = cameraVideo.videoWidth;
-        cameraCanvas.height = cameraVideo.videoHeight;
-        cameraCanvas.getContext('2d').drawImage(cameraVideo, 0, 0);
-
-        // image
-        cameraOutput.src = cameraCanvas.toDataURL('image/jpeg');
-        cameraOutput.style.display = 'block';
-
-        //resultCamera.base64 = cameraCanvas.toDataURL('image/jpeg');
-
-        let base64 = cameraCanvas.toDataURL("image/jpeg");
-        onSuccessCaptureJS(base64);
-        
-        stopStuffsAfterTake();
-        setTimeout(() => { completedAnimation(); }, 2000);
-    } else {
-        // hides captured image
-        setVisibilityOpenCamera();
-
-        // start camera again
-        startCamera();
-    }
-};
-
-const verifyAndSetPopupNotSupportBrowser = () => {
-
-    let _isChrome = platform.description.toLowerCase().indexOf('chrome') > -1;
-    let _isFirefox = platform.description.toLowerCase().indexOf('firefox') > -1;
-    let _isSafari = platform.description.toLowerCase().indexOf('safari') > -1;
-    let _isEdge = platform.description.toLowerCase().indexOf('edge') > -1;
-    let _isOpera = platform.description.toLowerCase().indexOf('opera') > -1;
-
-    //console.log(`${_isChrome} _isFirefox ${_isFirefox} _isEdge ${_isEdge} _isFirefox ${_isFirefox} _isSafari ${_isSafari}`);
-
-    if (isMobile()) {
-        if (isAndroid()) {
-
-            if (_isChrome || _isFirefox || _isEdge || _isFirefox) {
-                return true;
-            }
-            else {
-                document.getElementById('box--support').classList.remove("safari");
-                document.getElementById('box--support').classList.add("android");
-                document.getElementById('box--support').style.display = 'block';
-                return false;
-            }
-        }
-        else if (isIOS()) {
-            if (_isSafari) {
-                return true;
-            }
-            else {
-                document.getElementById('box--support').classList.remove("android");
-                document.getElementById('box--support').classList.add("safari");
-                document.getElementById('box--support').style.display = 'block';
-                return false;
-            }
-        }
-    }
-    else {
-        if (!isIOS()) {
-            if (_isChrome || _isOpera || _isEdge || _isFirefox) {
-                return true;
-            }
-            else {
-                document.getElementById('box--support').classList.remove("safari");
-                document.getElementById('box--support').classList.add("android");
-                document.getElementById('box--support').style.display = 'block';
-                return false;
-            }
-        }
-        else if (isIOS()) {
-            if (_isSafari) {
-                return true;
-            }
-            else {
-                document.getElementById('box--support').classList.remove("android");
-                document.getElementById('box--support').classList.add("safari");
-                document.getElementById('box--support').style.display = 'block';
-                return false;
-            }
-        }
-    }
-};
-
-
 const completedAnimation = () => {
     hideBoxLoading();
     document.getElementById('box--completed').style.display = 'inline-block';
@@ -432,15 +429,17 @@ const completedAnimation = () => {
 const stopStuffsAfterTake = () => {
     // stop tracking
     track.stop();
+
     // hide mask
     setVisibilityAfterTake();
+
+    hideMessage();
+
     // set camera status
     cameraOpen = false;
 };
 
 const setVisibilityOpenCamera = () => {
-    cameraOutput.style = 'display: none;';
-
     // show mask
     svgMask.style.display = 'unset';
 
@@ -453,76 +452,21 @@ const setVisibilityOpenCamera = () => {
 
 const setVisibilityAfterTake = () => {
     svgMask.style.display = 'none';
-
-    // show loading
-    showBoxLoading(true);
-
     // hide video
     cameraVideo.style.display = 'none';
-
-    resizeImageOut();
-};
-
-const resizeImageOut = async () => {
-    if (isMobile()) {
-        cameraOutput.style.width = '100%';
-        cameraOutput.style.height = '100%';
-        cameraOutput.style['object-fit'] = 'cover';
-        cameraOutput.style.top = '';
-        cameraOutput.style.left = '';
-    } else {
-        cameraOutput.style['object-fit'] = '';
-        let aspectRatioScreen = 0;
-        aspectRatioScreen = boxCamera.offsetWidth / boxCamera.offsetHeight;
-
-        // faixa preta emcima e embaixo
-        if (aspectRatioVideo > aspectRatioScreen) {
-            videoHeight = boxCamera.offsetWidth / aspectRatioVideo;
-            videoWidth = boxCamera.offsetWidth;
-        }
-        // faixa preta nas laterais
-        else {
-            videoHeight = boxCamera.offsetHeight;
-            videoWidth = boxCamera.offsetHeight * aspectRatioVideo;
-        }
-
-        // set a captured image
-        // cameraOutput.style.width = videoWidth;
-        // cameraOutput.style.height = videoHeight;
-
-        // ajusta a posicao (left x top)
-        if (boxCamera.offsetWidth > videoWidth) {
-            cameraOutput.style.left = (boxCamera.offsetWidth - videoWidth) / 2;
-            cameraOutput.style.top = '';
-        } else if (boxCamera.offsetHeight > videoHeight) {
-            cameraOutput.style.left = '';
-            cameraOutput.style.top = (boxCamera.offsetHeight - videoHeight) / 2;
-        }
-
-        let aspectRatioImg = cameraOutput.offsetWidth / cameraOutput.offsetHeight;
-
-        // faixa preta emcima e embaixo
-        if (aspectRatioImg > aspectRatioScreen) {
-            // set a captured image
-            cameraOutput.style.width = videoWidth;
-            cameraOutput.style.height = null;
-        }
-        // faixa preta nas laterais
-        else {
-            cameraOutput.style.width = null;
-            cameraOutput.style.height = videoHeight;
-        }
-    }
 };
 
 const calcBtnCapturePos = async () => {
+    if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL) {
+        // diferença entre o video e a area visivel (na web fica com a faixa preta caso ultrapasse a area do video)
 
-    // diferença entre o video e a area visivel (na web fica com a faixa preta caso ultrapasse a area do video)
-    //let diff = boxCamera.offsetHeight - videoHeight;
-    //let bottom = diff > 0 ? diff / 2 : 0 + 20;
+        buttonCapture.style.bottom = (((cameraVideo.offsetHeight - mHeight) / 2) / 2 - 30) + 'px';
 
-    buttonCapture.style.bottom = (((cameraVideo.offsetHeight - mHeight) / 2) / 2 - 30) + 'px';
-    buttonCapture.style.display = 'inline-block';
+        buttonCapture.style.display = 'inline-block';
+    }
+    else if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+        buttonCapture.style.display = 'none';
+    }
 };
 
 const calcMarginMask = async () => {
@@ -561,17 +505,14 @@ const orientationChange = () => {
 
 const updateView = () => {
     if (cameraOpen) {
-        loadMask();
-    }
-    // has image ?
-    else if (cameraOutput.src !== '') {
-        resizeImageOut();
+        loadMask(COLOR_SILHUETTE.SECONDARY);
     }
 
     calcBtnCapturePos();
 
     calcMarginMask();
     setMobileStyle();
+	setTopLabelMessage();
 };
 
 const addEventResize = async () => {
@@ -614,24 +555,144 @@ const getAppPartURL = (strPart) => {
     }
 };
 
+const downloadModels = async () => {
+
+    if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+
+        Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(getAppPartURL('/models')),
+            faceapi.nets.faceLandmark68Net.loadFromUri(getAppPartURL('/models'))
+        ])
+            .then(() => {
+                callAllMethodsInit();
+            })
+            .catch((error) => {
+                console.error('Não foi possível baixar os modelos', error);
+            });
+    }
+};
+
+const getFaceDetectorOptions = () => {
+    return new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold });
+};
+
+const isFaceDetectionModelLoaded = () => {
+    return !!faceapi.nets.tinyFaceDetector.params;
+};
+
 const updateTimeStats = (timeInMs) => {
     forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30);
     avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length;
-    //console.log(`time: ${Math.round(avgTimeInMs)} ms - fps: ${faceapi.utils.round( 1000 / avgTimeInMs )}`);
+};
+
+const verifyFaceApiIsRunning = () => {
+    if (isFaceApiIsRunning) {
+        return;
+    }
+    else if (counterIsRunning >= 6) {
+        TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
+        calcBtnCapturePos();
+        onPlay();
+    }
+    else {
+        setTimeout(() => {
+            counterIsRunning++;
+            verifyFaceApiIsRunning();
+        }, 1000);
+    }
+};
+
+const startTimerSession = () => {
+    if (isTimerSessionContinueRunning) {
+        timerSession = setTimeout(() => {
+            totalSeconds++;
+            startTimerSession();
+        }, 1000);
+    }
 };
 
 const onPlay = async () => {
     try {
-        hideBoxLoading();
+        if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL) {
+            if (isLoading) {
+                hideBoxLoading();
+                hideMessage();
+            }
 
-        if (
-            cameraVideo.paused ||
-            cameraVideo.ended
-        ) {
-            return setTimeout(() => onPlay());
+            if (
+                cameraVideo.paused ||
+                cameraVideo.ended ||
+                isCaptureReady
+            ) {
+                return setTimeout(() => onPlay());
+            }
+
+            if (!isTimerSessionContinueRunning) {
+                isTimerSessionContinueRunning = true;
+                startTimerSession();
+            }
+
+            const ts = Date.now();
+            updateTimeStats(Date.now() - ts);
         }
-        const ts = Date.now();
-        updateTimeStats(Date.now() - ts);
+        else if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+            if (
+                cameraVideo.paused ||
+                cameraVideo.ended ||
+                !isFaceDetectionModelLoaded() ||
+                (isMobile() && videoOrientation === Orientation.LANDSCAPE) ||
+                isCaptureReady
+            ) {
+                return setTimeout(() => onPlay());
+            }
+
+            const options = getFaceDetectorOptions();
+            const ts = Date.now();
+
+            const result = await faceapi
+                .detectSingleFace(cameraVideo, options)
+                .withFaceLandmarks();
+
+            updateTimeStats(Date.now() - ts);
+
+            if (isLoading) {
+                isFaceApiIsRunning = true;
+                hideBoxLoading();
+                isTimerSessionContinueRunning = true;
+                startTimerSession();
+                isLoading = false;
+            }
+            else {
+                if (result) {
+                    if (isCaptureReady) return setTimeout(() => onPlay());
+
+                    let dims = faceapi.matchDimensions(cameraOverlay, cameraVideo, true);
+                    dims.height = cameraVideo.offsetHeight;
+                    dims.width = cameraVideo.offsetWidth;
+                    const resizedResult = faceapi.resizeResults(result, dims);
+
+                    if (isCentralizedFace(
+                        resizedResult.landmarks.positions[0]._x,
+                        resizedResult.landmarks.positions[0]._y,
+                        resizedResult.landmarks.positions[16]._x,
+                        resizedResult.landmarks.positions[16]._y,
+                        resizedResult.landmarks.positions[27]._x,
+                        resizedResult.landmarks.positions[27]._y
+                    )) {
+
+                        if (!isTimerTaking) {
+                            if (FLOW === FLOW_TYPE.CLOSE) {
+                                initTimerTake(1700);
+                            }
+                        }
+                    }
+                }
+                else {
+                    changeColorMask(COLOR_SILHUETTE.SECONDARY);
+                    hideMessage();
+                }
+            }
+        }
 
         setTimeout(() => onPlay());
 
@@ -640,23 +701,209 @@ const onPlay = async () => {
     }
 };
 
+const changeColorMask = (color) => {
+    document.getElementById('focus-silhuette').style.stroke = color;
+};
+
+const setImageBackgroundAndLoading = () => {
+    showBoxLoading(false);
+    buttonCapture.style.display = 'none';
+};
+
+const initTimerTake = (milliseconds) => {
+    isTimerTaking = true;
+    timerTake = setTimeout(() => {
+        if (isCentralized) {
+            clearTimeout(timerTake);
+            takePicture();
+        }
+        else {
+            isTimerTaking = false;
+            clearTimeout(timerTake);
+        }
+    }, milliseconds);
+};
+
+/**
+ * Captura da foto
+ */
+const takePicture = () => {
+    if (cameraOpen) {
+        if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL || TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+            let base64 = getBase64Canvas();
+            isCaptureReady = true;
+            setImageBackgroundAndLoading();
+
+            resultCamera.base64 = base64;
+
+            onSuccessCaptureJS({
+                base64: base64,
+                Log: {
+                    TYPE_PROCESS_INITIAL: TYPE_PROCESS_INITIAL,
+                    TYPE_PROCESS: TYPE_PROCESS,
+                    TOTAL_SECONDS: totalSeconds,
+                    Device: platform.ua,
+                    Silhuette: {
+                        width: mWidth,
+                        height: mHeight
+                    },
+                    video: {
+                        width: cameraVideo.offsetWidth,
+                        height: cameraVideo.offsetHeight
+                    },
+                    radio: aspectRatioVideo,
+                    screen: {
+                        width: screen.width,
+                        height: screen.height
+                    }
+                }
+            });
+
+            completedAnimation();
+            stopStuffsAfterTake();
+        }
+    } else {
+        
+        setVisibilityOpenCamera();
+		
+        startCamera();
+    }
+};
+
+const getBase64Canvas = () => {
+    cameraCanvas.width = cameraVideo.videoWidth;
+    cameraCanvas.height = cameraVideo.videoHeight;
+    cameraCanvas.getContext('2d').drawImage(cameraVideo, 0, 0);
+    return cameraCanvas.toDataURL('image/jpeg');
+};
+
+const isCentralizedFace = (leftX, leftY, rightX, rightY, noseX, noseY) => {
+    _centralized.silhoutteWidth = mWidth;
+
+	if(isMobile()){
+		_centralized.topSilhuetteThresholdVertical = 8 / 100 * cameraVideo.offsetHeight;
+		_centralized.bottomSilhuetteThresholdVertical = 3.47 / 100 * cameraVideo.offsetHeight;
+		_centralized.inSilhuetteThresholdHorizontal = 12 / 100 * cameraVideo.offsetWidth;
+		_centralized.overSilhuetteThresholdHorizontal = 4 / 100 * cameraVideo.offsetWidth;
+		_centralized.faceTurnedSilhuetteThresholdHorizontal = 15 / 100 * cameraVideo.offsetWidth;
+		_centralized.differenceNoseYThreshold = 7 / 100 * cameraVideo.offsetHeight;
+	}
+	else {
+		_centralized.topSilhuetteThresholdVertical = 4 / 100 * cameraVideo.offsetHeight;
+		_centralized.bottomSilhuetteThresholdVertical = 3 / 100 * cameraVideo.offsetHeight;
+		_centralized.inSilhuetteThresholdHorizontal = 1 / 100 * cameraVideo.offsetWidth;
+		_centralized.overSilhuetteThresholdHorizontal = 4 / 100 * cameraVideo.offsetWidth;
+		_centralized.faceTurnedSilhuetteThresholdHorizontal = 9 / 100 * cameraVideo.offsetWidth;
+		_centralized.differenceNoseYThreshold = 7 / 100 * cameraVideo.offsetHeight;
+	}
+	
+    _centralized.differenceLeftY = leftY - noseY;
+    _centralized.differenceRightY = rightY - noseY;
+
+    _centralized.CSPWidthLeft = cameraVideo.offsetWidth / 2 - _centralized.silhoutteWidth / 2;
+    _centralized.CSPWidthRight = cameraVideo.offsetWidth / 2 + _centralized.silhoutteWidth / 2;
+    _centralized.CSPHeightTop = cameraVideo.offsetHeight / 2 - _centralized.topSilhuetteThresholdVertical;
+    _centralized.CSPHeightBottom = cameraVideo.offsetHeight / 2 + _centralized.bottomSilhuetteThresholdVertical;
+    _centralized.distanceLeftByNose = noseX - leftX;
+    _centralized.distanceRightByNose = rightX - noseX;
+
+    if (_centralized.distanceLeftByNose >= _centralized.distanceRightByNose) {
+        _centralized.differenceInDistance = _centralized.distanceLeftByNose - _centralized.distanceRightByNose;
+    }
+    else {
+        _centralized.differenceInDistance = _centralized.distanceRightByNose - _centralized.distanceLeftByNose;
+    }
+	
+    if (leftX >= _centralized.CSPWidthLeft - _centralized.overSilhuetteThresholdHorizontal &&
+        leftX <= _centralized.CSPWidthLeft + _centralized.inSilhuetteThresholdHorizontal &&
+        rightX <= _centralized.CSPWidthRight + _centralized.overSilhuetteThresholdHorizontal &&
+        rightX >= _centralized.CSPWidthRight - _centralized.inSilhuetteThresholdHorizontal &&
+        noseY >= _centralized.CSPHeightTop && noseY <= _centralized.CSPHeightBottom &&
+        _centralized.differenceInDistance < _centralized.faceTurnedSilhuetteThresholdHorizontal &&
+        _centralized.differenceLeftY < _centralized.differenceNoseYThreshold && _centralized.differenceRightY < _centralized.differenceNoseYThreshold &&
+        _centralized.differenceLeftY > -_centralized.differenceNoseYThreshold && _centralized.differenceRightY > -_centralized.differenceNoseYThreshold) {
+
+        changeColorMask(COLOR_SILHUETTE.PRIMARY);
+
+        showMessage('Não se mexa...');
+
+        isCentralized = true;
+        return true;
+    }
+    else {
+
+        changeColorMask(COLOR_SILHUETTE.SECONDARY);
+
+        if (rightX - leftX > _centralized.silhoutteWidth) {
+            showMessage('Afaste o rosto');
+        }
+        else if (rightX - leftX < _centralized.silhoutteWidth - _centralized.inSilhuetteThresholdHorizontal) {
+            showMessage('Aproxime o rosto');
+        }
+        else if (noseY <= _centralized.CSPHeightTop) {
+            showMessage('Centralize o rosto');
+        }
+        else if (noseY >= _centralized.CSPHeightBottom) {
+            showMessage('Centralize o rosto');
+        }
+        else if (leftX <= _centralized.CSPWidthLeft - _centralized.overSilhuetteThresholdHorizontal) {
+            showMessage('Rosto para cima');
+        }
+        else if (rightX >= _centralized.CSPWidthRight + _centralized.overSilhuetteThresholdHorizontal) {
+            showMessage('Rosto para baixo');
+        }
+        else if (_centralized.differenceLeftY > _centralized.differenceNoseYThreshold && _centralized.differenceRightY > _centralized.differenceNoseYThreshold) {
+            showMessage('Rosto inclinado');
+        }
+        else if (_centralized.differenceLeftY < -_centralized.differenceNoseYThreshold && _centralized.differenceRightY < -_centralized.differenceNoseYThreshold) {
+            showMessage('Rosto inclinado');
+        }
+        else if (_centralized.distanceLeftByNose > _centralized.distanceRightByNose) {
+            showMessage('Rosto de lado');
+        }
+        else if (_centralized.distanceLeftByNose < _centralized.distanceRightByNose) {
+            showMessage('Rosto de lado');
+        }
+
+        isCentralized = false;
+        isTimerTaking = false;
+        clearTimeout(timerTake);
+
+        return false;
+    }
+};
+
 const showBoxLoading = (isTransparent = true) => {
-    isLoading = true;
     boxLoading.style.backgroundColor = isTransparent ? "transparent" : "white";
     boxLoading.style.display = "block";
 };
 
 const hideBoxLoading = () => {
-    isLoading = false;
+    boxLoading.style.backgroundColor = "transparent";
+    boxLoading.style.backgroundImage = '';
     boxLoading.style.display = "none";
 };
 
 const showBoxLockOrientation = () => {
-    document.getElementById('box--orientation').style.display = 'block';
+    document.getElementById("box--orientation").style.visibility = 'visible';
+    document.getElementById("box--orientation").style.opacity = 1;
 };
 
 const hideBoxLockOrientation = () => {
-    document.getElementById('box--orientation').style.display = 'none';
+    document.getElementById("box--orientation").style.visibility = 'hidden';
+    document.getElementById("box--orientation").style.opacity = 0;
+};
+
+const showMessage = (message) => {
+    document.getElementById("message").innerHTML = message;
+    document.getElementById("message").style.visibility = 'visible';
+    document.getElementById("message").style.opacity = 1;
+};
+
+const hideMessage = () => {
+    document.getElementById("message").innerHTML = '';
+    document.getElementById("message").style.visibility = 'hidden';
+    document.getElementById("message").style.opacity = 0;
 };
 
 const addEventPlay = () => {
@@ -666,14 +913,14 @@ const addEventPlay = () => {
     });
 };
 
-const loadMask = async (color = "#e9e9e9") => {
-    // parameters -----------------------------------
+const loadMask = async (color) => {
+    
     let mBoxWidth = cameraVideo.offsetWidth;
     let mBoxHeight = cameraVideo.offsetHeight;
     let borderColor = color;
     let borderWidth = 5;
     let backgroundOpacity = '0.7';
-    // parameters -----------------------------------
+    
 
     let currentAspectRatio = 0;
 
@@ -681,51 +928,39 @@ const loadMask = async (color = "#e9e9e9") => {
         videoOrientation = Orientation.LANDSCAPE;
     }
 
-    // video proportion
+    
     if (isMobile()) {
         videoWidth = cameraVideo.offsetWidth;
         videoHeight = cameraVideo.offsetHeight;
     } else {
         currentAspectRatio = cameraVideo.offsetWidth / cameraVideo.offsetHeight;
 
-        // faixa preta emcima e embaixo
+        
         if (aspectRatioVideo > currentAspectRatio) {
             videoHeight = cameraVideo.offsetWidth / aspectRatioVideo;
             videoWidth = cameraVideo.offsetWidth;
         }
-        // faixa preta nas laterais
         else {
             videoHeight = cameraVideo.offsetHeight;
             videoWidth = cameraVideo.offsetHeight * aspectRatioVideo;
         }
     }
 
-    //console.log(`mBoxWidth ${mBoxWidth}, mBoxHeight ${mBoxHeight}, videoWidth ${videoWidth}, videoHeight ${videoHeight}, resolutionWidth ${resolutionWidth}, resolutionHeight ${resolutionHeight}`);
-
-    // ajusta o tamanho da máscara com base no video
-    // 300px referente a largura, usamos esse valor pois bate com a distância ocular ideal para biometria
-    // 480px referente a altura padrão de um rosto
-
-    if(isMobile() && isIOS()) {
-        if(resolutionHeight > resolutionWidth) {
+    if (isMobile() && isIOS()) {
+        if (resolutionHeight > resolutionWidth) {
             let vResolutionHeight = resolutionHeight;
             let vResolutionWidth = resolutionWidth;
             resolutionHeight = vResolutionWidth;
             resolutionWidth = vResolutionHeight;
         }
-    } 
-
+    }
+	
     let factorWidth = (videoWidth / resolutionWidth) * (FLOW === FLOW_TYPE.CLOSE ? SILHUETTE_CONFIGURATIONS.CLOSE.WIDTH : SILHUETTE_CONFIGURATIONS.AWAY.WIDTH);
     let factorHeight = (videoHeight / resolutionHeight) * (FLOW === FLOW_TYPE.CLOSE ? SILHUETTE_CONFIGURATIONS.CLOSE.HEIGHT : SILHUETTE_CONFIGURATIONS.AWAY.HEIGHT);
 
-
     if (isMobile()) {
-        // no modo portrait levamos em conta a altura e calculamos a largura da máscara
-        // quando estamos simulando um dispositivo móvel no navegador a abertura da câmera sempre é landscape
-        // porém os lados são cortados no vídeo para dar a impressão de portrait
-        // por isso usamos a alttura como referência, por ser o valor real do video (sem cortes)
+        
         if (videoOrientation === Orientation.PORTRAIT) {
-            
             if (FLOW === FLOW_TYPE.CLOSE) {
                 mWidth = factorHeight / (SILHUETTE_CONFIGURATIONS.CLOSE.HEIGHT / SILHUETTE_CONFIGURATIONS.CLOSE.WIDTH);
             }
@@ -753,45 +988,37 @@ const loadMask = async (color = "#e9e9e9") => {
     let fractionX = 0.15;
     let fractionWidthX = halfMWidth * fractionX;
 
-    // ---------------
-    //      6   7
-    //   5         8
-    //
-    //
-    //   4         1
-    //      3   2
-    // ---------------
+    
 
-    // point 1
+    
     let point1X = mBoxXCenter + halfMWidth;
     let point1Y = mBoxYCenter + half14Height;
 
-    // point 2
+    
     let point2X = mBoxXCenter + fractionWidthX;
     let point2Y = mBoxYCenter + halfHeight;
 
-    // point 3
+    
     let point3H = mBoxXCenter - fractionWidthX * 2;
 
-    // point 4
+    
     let point4X = mBoxXCenter - halfMWidth;
     let point4Y = mBoxYCenter + half14Height;
 
-    // point 5
+    
     let point5V = mBoxYCenter - half14Height;
 
-    // point 6
+    
     let point6X = mBoxXCenter - fractionWidthX;
     let point6Y = mBoxYCenter - halfHeight;
 
-    // point 7
+    
     let point7h = fractionWidthX * 2;
 
-    // point 8
+    
     let point8X = mBoxXCenter + halfMWidth;
     let point8Y = mBoxYCenter - half14Height;
 
-   
     let arcXY = halfMWidth - fractionWidthX;
 
     let mov0 = 'M0,0';
@@ -811,12 +1038,12 @@ const loadMask = async (color = "#e9e9e9") => {
     let d = `${mov0}${v0}${h0}${v1}${z0}${mov1}${arc1}${h1}${arc2}${v2}${arc3}${h2}${arc4}${z}`;
     let xmlns = 'http://www.w3.org/2000/svg';
 
-    // svg
+    
     if (!svgMask) {
         svgMask = document.createElementNS(xmlns, 'svg');
     }
 
-    // svg attributes
+    
     svgMask.setAttributeNS(
         null,
         'viewBox',
@@ -827,14 +1054,12 @@ const loadMask = async (color = "#e9e9e9") => {
     svgMask.style.display = 'block';
     svgMask.setAttributeNS(null, 'id', `svgMask`);
 
-
-
-    // definitions
+    
     if (!defs) {
         defs = document.createElementNS(xmlns, 'defs');
     }
 
-    // style
+    
     if (!style) {
         style = document.createElementNS(xmlns, 'style');
     }
@@ -844,18 +1069,18 @@ const loadMask = async (color = "#e9e9e9") => {
         groupMain = document.createElementNS(xmlns, 'g');
     }
 
-    // main group
+    
     groupMain.setAttributeNS(null, 'id', `main`);
     groupMain.setAttributeNS(null, 'data-name', `main`);
 
-    // maks group
+    
     if (!groupMask) {
         groupMask = document.createElementNS(xmlns, 'g');
     }
 
     groupMask.setAttributeNS(null, 'id', `mask`);
 
-    // background
+    
     if (!pathBackground) {
         pathBackground = document.createElementNS(xmlns, 'path');
     }
@@ -868,8 +1093,8 @@ const loadMask = async (color = "#e9e9e9") => {
         pathFocus = document.createElementNS(xmlns, 'rect');
     }
 
-    // focus
-    pathFocus.setAttributeNS(null, 'id', `focus`);
+    
+    pathFocus.setAttributeNS(null, 'id', `focus-silhuette`);
     pathFocus.setAttributeNS(null, 'class', `cls-focus`);
     pathFocus.setAttributeNS(null, 'x', point4X);
     pathFocus.setAttributeNS(null, 'y', point6Y);
@@ -877,7 +1102,7 @@ const loadMask = async (color = "#e9e9e9") => {
     pathFocus.setAttributeNS(null, 'height', mHeight);
     pathFocus.setAttributeNS(null, 'rx', arcXY);
 
-    // structure
+    
     if (!exists) {
         groupMask.appendChild(pathBackground);
         groupMask.appendChild(pathFocus);
@@ -889,11 +1114,43 @@ const loadMask = async (color = "#e9e9e9") => {
     }
 };
 
-const init = () => {
-    showBoxLoading(false);
-    TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
+const setTopLabelMessage = () => {
+    document.getElementById("message").style.top = `${cameraVideo.offsetHeight / 2 - mHeight / 2 - 25}px`;
+};
+
+var init = (TYPE, COLOR_SILHUETTE_PRIMARY, COLOR_SILHUETTE_SECONDARY) => {
+    if (!isSupportBrowser) return;
+
+    let _TYPE = parseInt(TYPE);
+
+    if (_TYPE === TYPE_CAMERA.CAMERA_NORMAL || _TYPE === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+        TYPE_PROCESS = _TYPE;
+        TYPE_PROCESS_INITIAL = _TYPE;
+    }
+    else {
+        TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
+        TYPE_PROCESS_INITIAL = TYPE_CAMERA.CAMERA_NORMAL;
+    }
+	
+	if(COLOR_SILHUETTE_PRIMARY !== "" && COLOR_SILHUETTE_PRIMARY !== undefined && COLOR_SILHUETTE_PRIMARY !== null){
+	    COLOR_SILHUETTE.PRIMARY = COLOR_SILHUETTE_PRIMARY;
+	}
+	if(COLOR_SILHUETTE_SECONDARY !== "" && COLOR_SILHUETTE_SECONDARY !== undefined && COLOR_SILHUETTE_SECONDARY !== null){
+	    COLOR_SILHUETTE.SECONDARY = COLOR_SILHUETTE_SECONDARY;
+	}
+
     FLOW = FLOW_TYPE.CLOSE;
-    callAllMethodsInit();
+
+    isLoading = true;
+    showBoxLoading(false);
+
+    if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+        verifyFaceApiIsRunning();
+        downloadModels();
+    }
+    else {
+        callAllMethodsInit();
+    }
 };
 
 const callAllMethodsInit = () => {
@@ -902,6 +1159,13 @@ const callAllMethodsInit = () => {
     addEventPlay();
     addEventResize();
     startCamera();
+    setConfiguration();
+};
+
+const setConfiguration = () => {
+    if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+        setTopLabelMessage();
+    }
 };
 
 const setOrientation = () => {
@@ -910,7 +1174,7 @@ const setOrientation = () => {
         screen.mozOrientation ||
         screen.msOrientation;
 
-    // se tem o parametro orientation (chrome, explorer ou mozilla)
+    
     if (orientation) {
         if (
             orientation == 'landscape-primary' ||
@@ -921,7 +1185,7 @@ const setOrientation = () => {
             videoOrientation = Orientation.PORTRAIT;
         }
     } else {
-        // caso não exista, possivelmente Safari
+        
         if (boxCamera.offsetWidth > boxCamera.offsetHeight) {
             videoOrientation = Orientation.LANDSCAPE;
         } else {
@@ -975,19 +1239,36 @@ const defaultConstraints = {
     },
 };
 
-//------------------------------------------------------
-
-document.getElementById('reinit').onclick = () => { location.reload(); };
-
-window.onload = () => {
-    if (verifyAndSetPopupNotSupportBrowser()) {
-        init();
+const visibilityChange = () => {
+    if (document.hidden) {
+        isTimerSessionContinueRunning = false;
+        cameraVideo.pause();
+    } else {
+        if (!isCaptureReady) {
+            cameraVideo.play();
+            isTimerSessionContinueRunning = true;
+            startTimerSession();
+        }
     }
 };
 
+document.addEventListener("DOMContentLoaded", () => {
+	
+	cameraVideo = document.querySelector('#camera--video');
+	
+	cameraCanvas = document.querySelector('#camera--canvas');
+	
+	cameraOverlay = document.querySelector('#camera--overlay');
+	
+	buttonCapture = document.querySelector('#camera--trigger');
+	
+	boxLoading = document.querySelector('#box--loading');
+	
+	boxCamera = document.querySelector('#box-camera');
+	document.getElementById('reinit').onclick = () => { location.reload(); };
+});
+
 window.addEventListener('orientationchange', orientationChange);
 navigator.mediaDevices.ondevicechange = orientationChange;
-
-
-
+document.addEventListener('visibilitychange', visibilityChange, false);
 

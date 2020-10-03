@@ -1,3 +1,6 @@
+
+/*#region Reset */
+
 html,
 body,
 div,
@@ -466,6 +469,10 @@ textarea {
     padding: 0.2em 0;
 }
 
+/*#endregion */
+
+/*#region General */
+
 * {
     padding: 0;
     margin: 0;
@@ -530,17 +537,6 @@ body {
     height: 100%;
 }
 
-#camera--output {
-    transform: scaleX(-1);
-    filter: FlipH;
-    display: block;
-    margin: auto;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
 #camera--trigger {
     width: 60px;
     height: 60px;
@@ -581,6 +577,11 @@ body {
     background-color: transparent;
     z-index: 62;
     left: 0;
+    background-position: center center;
+    background-size: cover;
+    transform: scaleX(-1);
+    background-repeat: no-repeat;
+    filter: FlipH;
 }
 
 audio,
@@ -619,7 +620,9 @@ video {
     font-weight: bold;
     z-index: 61;
     font-size: 15px;
-    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
 }
 
 .btn {
@@ -637,9 +640,12 @@ video {
     margin: 0 auto 15px;
 }
 
-.text {
+#resultLiveness {
+    display: block;
+    font-size: 16px;
     font-family: 'Roboto', sans-serif;
-    font-size: 18px;
+    color: #2980FF;
+    font-weight: bold;
 }
 
 .box-in {
@@ -650,7 +656,6 @@ video {
     z-index: 10;
     text-align: center;
 }
-
 
 #lock-image {
     max-width: 100px;
@@ -674,7 +679,15 @@ video {
     z-index: 63;
     left: 0;
     top: 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
 }
+
+
+/*#endregion */
+
+/*#region Suport */
 
 #box--support {
     display: inline-block;
@@ -707,29 +720,32 @@ video {
         text-align: center;
     }
 
-    #box--support .browsers li {
-        display: inline-block;
-    }
-
-        #box--support .browsers li img {
-            width: 52px;
-            height: 52px;
+        #box--support .browsers li {
+            display: inline-block;
         }
+
+            #box--support .browsers li img {
+                width: 52px;
+                height: 52px;
+            }
 
     #box--support .text {
         text-align: center;
         font-family: 'Roboto', sans-serif;
         width: 100%;
         margin-bottom: 20px;
-        font-size: 18px;
     }
 
 
-    .success-checkmark {
-        width: 80px;
-        height: 115px;
-        margin: 0 auto;
-    }
+/*#endregion */
+
+/*#region Success */
+
+.success-checkmark {
+    width: 80px;
+    height: 115px;
+    margin: 0 auto;
+}
 
     .success-checkmark .check-icon {
         width: 80px;
@@ -889,6 +905,10 @@ video {
     }
 }
 
+/*#endregion */
+
+/*#region Load */
+
 .loader,
 .loader:after {
     border-radius: 50%;
@@ -938,6 +958,9 @@ video {
     }
 }
 
+/*#endregion */
+
+/*#region Video IOS controls */
 
 *::-webkit-media-controls-start-playback-button {
     display: none !important;
@@ -978,3 +1001,7 @@ video::-webkit-media-controls-start-playback-button {
     display: none !important;
     -webkit-appearance: none;
 }
+
+
+
+/*#endregion */
