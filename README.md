@@ -59,13 +59,13 @@ Para manipular o objeto com base64 da imagem capturada, os métodos de callback 
 
 O método init receberá três parâmetros como:
 
-TYPE: Tipo do processo de câmera como:
+- TYPE: Tipo do processo de câmera como:
 
    - TYPE_CAMERA.CAMERA_NORMAL - Captura manual.
    - TYPE_CAMERA.CAMERA_INTELIGENCE - Captura inteligente usando IA no reconhecimento de face e enquadramento com captura automática.
 
-COLOR_SILHUETTE_PRIMARY: Cor em hexadecimal que ao encontrar a face e estiver enquadrada corretamente irá mostrar na silhueta.
-COLOR_SILHUETTE_SECONDARY: Cor em hexadecimal que ao não encontrar a face ou não estiver enquadrada corretamente irá mostrar na silhueta.
+- COLOR_SILHUETTE_PRIMARY: Cor em hexadecimal que ao encontrar a face e estiver enquadrada corretamente irá mostrar na silhueta.
+- COLOR_SILHUETTE_SECONDARY: Cor em hexadecimal que ao não encontrar a face ou não estiver enquadrada corretamente irá mostrar na silhueta.
 
 O método onSuccessCaptureJS retorna um objeto com as seguintes propredades:
 
