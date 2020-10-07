@@ -38,22 +38,23 @@ Pronto! O seu projeto já está pronto para o uso de nossa ferramenta.
 
 Para manipular o objeto com base64 da imagem capturada e log, os métodos de callback como demonstrados abaixo e disponíveis na classe index.html:
 
-  ```javascript
-      document.addEventListener("DOMContentLoaded", () => {
+```javascript
 
-            onSuccessCaptureJS = onSuccessCapture;
-            onFailedCaptureJS = onFailedCapture;
+document.addEventListener("DOMContentLoaded", () => {
 
-            function onSuccessCapture(obj) {
-                console.log(obj);
-            }
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
 
-            function onFailedCapture(err) {
-                console.log(err);
-            }
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
 
-            initCameraNormal('#fff');   
-        });
+    function onFailedCapture(err) {
+        console.log(err);
+    }
+
+    initCameraNormal('#fff');   
+});
   
 ```
 
@@ -65,22 +66,22 @@ O método ``initCameraInteligence`` receberá um parâmetro como:
 
 Para manipular o objeto com base64 da imagem capturada e log, os métodos de callback como demonstrados abaixo e disponíveis na classe index.html:
 
-  ```javascript
-      document.addEventListener("DOMContentLoaded", () => {
+```javascript      
+document.addEventListener("DOMContentLoaded", () => {
 
-            onSuccessCaptureJS = onSuccessCapture;
-            onFailedCaptureJS = onFailedCapture;
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
 
-            function onSuccessCapture(obj) {
-                console.log(obj);
-            }
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
 
-            function onFailedCapture(err) {
-                console.log(err);
-            }
+    function onFailedCapture(err) {
+        console.log(err);
+    }
 
-            initCameraInteligence('#2980ff', '#fff', '#fff');
-        });
+    initCameraInteligence('#2980ff', '#fff', '#fff'); 
+});
   
 ```
 
@@ -118,10 +119,9 @@ O método onSuccessCaptureJS retorna um objeto com as seguintes propredades:
 ```
  O log será útil na identificação de possíveis problemas de tamanho de silhueta ou qual tipo de captura foi realmente realizada pelo usuário:
  
- - **TYPE_PROCESS_INITIAL:** Tipo de câmera passado pelo init (CÂMERA NORMAL ou CÂMERA INTELIGENCE), celulares mais antigos não 
- possuem suporte a modelos de IA, caso não possua ou algum problema ocorra no uso do face-api será aberto o câmera normal com captura manual.
- - **TYPE_PROCESS:** Tipo de câmera realmente utilizado, como dito acima, alguns celulares não possuem suporte a IA ou caso ocorra algum problema com face-api é ustilizado o processo
- de câmera normal.
+ - **TYPE_PROCESS_INITIAL:** Tipo de processo de captura invocado inicialmente como CÂMERA NORMAL ou CÂMERA INTELIGENTE. Celulares mais antigos não 
+ possuem suporte a IA na qual o CÂMERA INTELIGENTE precisa, caso não possua será aberto o câmera normal com captura manual e neste caso o tipo de processo invocado será diferente do realizado pelo usuário.
+ - **TYPE_PROCESS:** Tipo de processo de captura utilizado pelo usuário, como dito acima, alguns celulares não possuem suporte a IA ou caso ocorra algum problema com face-api é utilizado o processo de CÂMERA NORMAL.
  - **TOTAL_SECONDS:** Total de segundos do processo.
  - **Device:** Descrição do dispositivo.
  - **Silhuette:** Tamanho da silhueta criada.
@@ -131,14 +131,20 @@ O método onSuccessCaptureJS retorna um objeto com as seguintes propredades:
  
 ## Customizações
 
-O arquivo ``pop-ups.css`` possui estilos dos pop-ups de Loading, Orientation, Support, Completed e mensagem de enquadramento. Fazem parte do fluxo e podem ser customizados com as devidas especificações abaixo:
+O arquivo ``pop-ups.css`` possui estilos dos pop-ups de Carregando, Orientação, Compatibilidade, Concluído e Mensagem de enquadramento. Fazem parte do fluxo e podem ser customizados com as devidas especificações abaixo:
 
-   - **Loading:** Acionado no início do carregamento dos arquivos até que esteja tudo pronto para o usuário realizar a captura, o html interno do ``#box--loading`` pode ser subtituído por html de acordo com sua aplicação.
-   - **Orientation:** Acionado nos casos que o usuário está no modo LANDSCAPE, o html interno do ``#box--orientation`` pode ser customizado de acordo com sua aplicação.
-   - **Support:** Acionado nos casos de Browsers não suportados, o html com a classes ``.browsers, .li-android. li-ios`` e ``css`` referentes não devem ser alteradas pois a api usa para alternar entre visualizações de browsers suportados de acordo com SO de cada dispositivo.
-   - **Completed:** Usado no início do carregamento dos arquivos até que esteja tudo pronto para o usuário realizar a captura.
-   - **Mensagem de enquadramento:** Label usada para auxiliar o usuário no enquadramento de face no modo CÂMERA INTELIGENTE, para alterar a cor de fundo e fonte basta usar ``!important`` como mostrado no ``pop-ups.css``, adicionando paddings, margins ou regras css que afetam a posição do mesmo, irão afetar o funcionanmento pois a posição
-   do box é calculada automaticamente.
+   - **Carregando:** Acionado no início do carregamento dos arquivos até que esteja tudo pronto para o usuário realizar a captura. O html interno do ``#box--loading`` pode ser subtituído por html de acordo com sua aplicação.
+   - **Orientação:** Acionado nos casos que o usuário está no modo LANDSCAPE. O html interno do ``#box--orientation`` pode ser customizado de acordo com sua aplicação.
+   - **Compatibilidade:** Acionado nos casos de Browsers não suportados, o html interno ao ``box--support`` e regras css referentes não devem ser alteradas pois a api usa para alternar entre visualizações de browsers suportados de acordo com SO de cada dispositivo.
+   - **Concluído:** Usado no início do carregamento dos arquivos até que esteja tudo pronto para o usuário realizar a captura.
+   - **Mensagem de enquadramento:** Label usada para auxiliar o usuário no enquadramento de face no modo CÂMERA INTELIGENTE. Adicionar regras css que afetam a posição do box ou tamanho, deverá causar mau funcionamento, pois a posição do box é calculada automaticamente em tempo real. Siga abaixo o exemplo de como alterar a cor do fundo e fonte:
+   
+   ```
+   #box-camera #message {
+      background-color: rgba(41, 128, 255, 1) !important;
+      color: #fff !important;
+   }
+   ```
  
 ## DEMO
 
