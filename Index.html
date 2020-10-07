@@ -24,11 +24,10 @@
     <script src="public/js/plataform.js"></script>
     <script src="public/js/adapter-latest.js"></script>
     <script src="public/js/face-api.js"></script>
-    <link async href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <link async rel="stylesheet" href="public/css/style.css">
-	<script src="public/js/app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/css/pop-ups.css">
+    <link rel="stylesheet" href="public/css/style.css">
 </head>
-
 <body>
     <!-- Camera -->
     <div id="box-camera">
@@ -84,28 +83,25 @@
                         <div class="icon-fix"></div>
                     </div>
                 </div>
-                <button id="reinit" class="btn">Reiniciar</button>
-                <div id="resultLiveness" style="display: none;"></div>
             </div>
         </div>
     </div>
+    <script src="public/js/app.js"></script>
     <script>
-		const setTypeProcess = (type) => {
+
+        const setTypeProcess = (type) => {
 			let _type = parseInt(type);
-			if (_type === TYPE_CAMERA.CAMERA_NORMAL) {
-				return TYPE_CAMERA.CAMERA_NORMAL;
-			}
-			else if (_type === TYPE_CAMERA.CAMERA_INTELIGENCE) {
-				return TYPE_CAMERA.CAMERA_INTELIGENCE;
+			if (_type === 1 || _type === 2) {
+                return _type;
 			}
 			else {
-				return TYPE_CAMERA.CAMERA_NORMAL;
+				return 1;
 			}
 		};
 
         document.addEventListener("DOMContentLoaded", () => {
 
-			let _type = setTypeProcess(getUrlVars()["type"]);
+            let _type = setTypeProcess(getUrlVars()["type"]);
 
             onSuccessCaptureJS = onSuccessCapture;
             onFailedCaptureJS = onFailedCapture;
@@ -117,8 +113,13 @@
             function onFailedCapture(err) {
                 console.log(err);
             }
- 
-            init(_type, '#297fff', '#fff');
+
+            if (_type === 1) {
+                initCameraNormal('#fff');   
+            }
+            else {
+                initCameraInteligence('#2980ff', '#fff', '#fff');
+            }
         });
     </script>
 </body>

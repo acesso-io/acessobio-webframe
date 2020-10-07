@@ -35,32 +35,31 @@ const isAndroid = () => {
 };
 
 const verifyAndSetPopupNotSupportBrowser = () => {
-
+    
     let _isChrome = platform.description.toLowerCase().indexOf('chrome') > -1;
     let _isFirefox = platform.description.toLowerCase().indexOf('firefox') > -1;
     let _isSafari = platform.description.toLowerCase().indexOf('safari') > -1;
     let _isEdge = platform.description.toLowerCase().indexOf('edge') > -1;
     let _isOpera = platform.description.toLowerCase().indexOf('opera') > -1;
-
+    
     if (isMobile()) {
+        
         if (isAndroid()) {
 
             if (_isChrome || _isFirefox || _isEdge || _isFirefox) {
                 return true;
             }
             else {
-                document.getElementById('box--support').classList.remove("safari");
                 document.getElementById('box--support').classList.add("android");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
             }
         }
         else if (isIOS()) {
-            if (_isSafari) {
+            if (_isSafari && (!_isChrome && !_isOpera && !_isEdge && !_isFirefox)) {
                 return true;
             }
             else {
-                document.getElementById('box--support').classList.remove("android");
                 document.getElementById('box--support').classList.add("safari");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
@@ -73,18 +72,16 @@ const verifyAndSetPopupNotSupportBrowser = () => {
                 return true;
             }
             else {
-                document.getElementById('box--support').classList.remove("safari");
                 document.getElementById('box--support').classList.add("android");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
             }
         }
         else if (isIOS()) {
-            if (_isSafari && (_isChrome && _isOpera && _isEdge && _isFirefox)) {
+            if (_isSafari && (!_isChrome && !_isOpera && !_isEdge && !_isFirefox)) {
                 return true;
             }
             else {
-                document.getElementById('box--support').classList.remove("android");
                 document.getElementById('box--support').classList.add("safari");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
@@ -130,7 +127,7 @@ var onFailedCaptureJS;
 
 let TYPE_PROCESS;
 let TYPE_PROCESS_INITIAL;
-var TYPE_CAMERA = {
+const TYPE_CAMERA = {
     CAMERA_NORMAL: 1,
     CAMERA_INTELIGENCE: 2
 };
@@ -151,25 +148,15 @@ const SILHUETTE_CONFIGURATIONS = {
     }
 };
 
-const PERCENT_FACE_TOP_BY_VIDEO_THRESHOLD = {
-    CLOSE: {
-        MIN: 36,
-        MAX: 41
-    }
-};
-
 let COLOR_SILHUETTE = {
     PRIMARY: '#297fff',
-    SECONDARY: '#fff'
+    SECONDARY: '#fff',
+    NEUTRAL: '#fff'
 };
 
 let totalSeconds = 0;
 let isTimerSessionContinueRunning = false;
 let timerSession;
-
-let resultCamera = {
-    base64: null
-};
 
 let _centralized = {
     silhoutteWidth: null,
@@ -408,6 +395,11 @@ const startCamera = () => {
         .then(loadMask(COLOR_SILHUETTE.SECONDARY))
         .then(calcBtnCapturePos)
         .then(calcMarginMask)
+		.then(() => {
+			if(TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE){
+				verifyFaceApiIsRunning();
+			}
+		})
         .catch((error) => {
             handleError(error);
         });
@@ -479,20 +471,8 @@ const calcMarginMask = async () => {
 };
 
 const toggleFullScreen = () => {
-    if (!document.fullscreenElement) {
-        if (resultCamera.requestFullscreen) {
-            resultCamera.requestFullscreen();
-        } else if (resultCamera.mozRequestFullScreen) {
-            resultCamera.mozRequestFullScreen();
-        } else if (resultCamera.webkitRequestFullscreen) {
-            resultCamera.webkitRequestFullscreen();
-        } else if (resultCamera.msRequestFullscreen) {
-            resultCamera.msRequestFullscreen();
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
+    if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen();
     }
 };
 
@@ -512,7 +492,7 @@ const updateView = () => {
 
     calcMarginMask();
     setMobileStyle();
-	setTopLabelMessage();
+    setTopLabelMessage();
 };
 
 const addEventResize = async () => {
@@ -591,6 +571,8 @@ const verifyFaceApiIsRunning = () => {
     }
     else if (counterIsRunning >= 6) {
         TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
+        COLOR_SILHUETTE.SECONDARY = COLOR_SILHUETTE.NEUTRAL;
+        loadMask(COLOR_SILHUETTE.SECONDARY);
         calcBtnCapturePos();
         onPlay();
     }
@@ -734,8 +716,6 @@ const takePicture = () => {
             isCaptureReady = true;
             setImageBackgroundAndLoading();
 
-            resultCamera.base64 = base64;
-
             onSuccessCaptureJS({
                 base64: base64,
                 Log: {
@@ -763,9 +743,9 @@ const takePicture = () => {
             stopStuffsAfterTake();
         }
     } else {
-        
+
         setVisibilityOpenCamera();
-		
+
         startCamera();
     }
 };
@@ -780,23 +760,23 @@ const getBase64Canvas = () => {
 const isCentralizedFace = (leftX, leftY, rightX, rightY, noseX, noseY) => {
     _centralized.silhoutteWidth = mWidth;
 
-	if(isMobile()){
-		_centralized.topSilhuetteThresholdVertical = 8 / 100 * cameraVideo.offsetHeight;
-		_centralized.bottomSilhuetteThresholdVertical = 3.47 / 100 * cameraVideo.offsetHeight;
-		_centralized.inSilhuetteThresholdHorizontal = 12 / 100 * cameraVideo.offsetWidth;
-		_centralized.overSilhuetteThresholdHorizontal = 4 / 100 * cameraVideo.offsetWidth;
-		_centralized.faceTurnedSilhuetteThresholdHorizontal = 15 / 100 * cameraVideo.offsetWidth;
-		_centralized.differenceNoseYThreshold = 7 / 100 * cameraVideo.offsetHeight;
-	}
-	else {
-		_centralized.topSilhuetteThresholdVertical = 4 / 100 * cameraVideo.offsetHeight;
-		_centralized.bottomSilhuetteThresholdVertical = 3 / 100 * cameraVideo.offsetHeight;
-		_centralized.inSilhuetteThresholdHorizontal = 1 / 100 * cameraVideo.offsetWidth;
-		_centralized.overSilhuetteThresholdHorizontal = 4 / 100 * cameraVideo.offsetWidth;
-		_centralized.faceTurnedSilhuetteThresholdHorizontal = 9 / 100 * cameraVideo.offsetWidth;
-		_centralized.differenceNoseYThreshold = 7 / 100 * cameraVideo.offsetHeight;
-	}
-	
+    if (isMobile()) {
+        _centralized.topSilhuetteThresholdVertical = 8 / 100 * cameraVideo.offsetHeight;
+        _centralized.bottomSilhuetteThresholdVertical = 3.47 / 100 * cameraVideo.offsetHeight;
+        _centralized.inSilhuetteThresholdHorizontal = 12 / 100 * cameraVideo.offsetWidth;
+        _centralized.overSilhuetteThresholdHorizontal = 4 / 100 * cameraVideo.offsetWidth;
+        _centralized.faceTurnedSilhuetteThresholdHorizontal = 15 / 100 * cameraVideo.offsetWidth;
+        _centralized.differenceNoseYThreshold = 7 / 100 * cameraVideo.offsetHeight;
+    }
+    else {
+        _centralized.topSilhuetteThresholdVertical = 4 / 100 * cameraVideo.offsetHeight;
+        _centralized.bottomSilhuetteThresholdVertical = 3 / 100 * cameraVideo.offsetHeight;
+        _centralized.inSilhuetteThresholdHorizontal = 1 / 100 * cameraVideo.offsetWidth;
+        _centralized.overSilhuetteThresholdHorizontal = 4 / 100 * cameraVideo.offsetWidth;
+        _centralized.faceTurnedSilhuetteThresholdHorizontal = 9 / 100 * cameraVideo.offsetWidth;
+        _centralized.differenceNoseYThreshold = 7 / 100 * cameraVideo.offsetHeight;
+    }
+
     _centralized.differenceLeftY = leftY - noseY;
     _centralized.differenceRightY = rightY - noseY;
 
@@ -813,7 +793,7 @@ const isCentralizedFace = (leftX, leftY, rightX, rightY, noseX, noseY) => {
     else {
         _centralized.differenceInDistance = _centralized.distanceRightByNose - _centralized.distanceLeftByNose;
     }
-	
+
     if (leftX >= _centralized.CSPWidthLeft - _centralized.overSilhuetteThresholdHorizontal &&
         leftX <= _centralized.CSPWidthLeft + _centralized.inSilhuetteThresholdHorizontal &&
         rightX <= _centralized.CSPWidthRight + _centralized.overSilhuetteThresholdHorizontal &&
@@ -914,13 +894,13 @@ const addEventPlay = () => {
 };
 
 const loadMask = async (color) => {
-    
+
     let mBoxWidth = cameraVideo.offsetWidth;
     let mBoxHeight = cameraVideo.offsetHeight;
     let borderColor = color;
     let borderWidth = 5;
     let backgroundOpacity = '0.7';
-    
+
 
     let currentAspectRatio = 0;
 
@@ -928,14 +908,14 @@ const loadMask = async (color) => {
         videoOrientation = Orientation.LANDSCAPE;
     }
 
-    
+
     if (isMobile()) {
         videoWidth = cameraVideo.offsetWidth;
         videoHeight = cameraVideo.offsetHeight;
     } else {
         currentAspectRatio = cameraVideo.offsetWidth / cameraVideo.offsetHeight;
 
-        
+
         if (aspectRatioVideo > currentAspectRatio) {
             videoHeight = cameraVideo.offsetWidth / aspectRatioVideo;
             videoWidth = cameraVideo.offsetWidth;
@@ -954,19 +934,14 @@ const loadMask = async (color) => {
             resolutionWidth = vResolutionHeight;
         }
     }
-	
-    let factorWidth = (videoWidth / resolutionWidth) * (FLOW === FLOW_TYPE.CLOSE ? SILHUETTE_CONFIGURATIONS.CLOSE.WIDTH : SILHUETTE_CONFIGURATIONS.AWAY.WIDTH);
-    let factorHeight = (videoHeight / resolutionHeight) * (FLOW === FLOW_TYPE.CLOSE ? SILHUETTE_CONFIGURATIONS.CLOSE.HEIGHT : SILHUETTE_CONFIGURATIONS.AWAY.HEIGHT);
+
+    let factorWidth = (videoWidth / resolutionWidth) * SILHUETTE_CONFIGURATIONS.CLOSE.WIDTH;
+    let factorHeight = (videoHeight / resolutionHeight) * SILHUETTE_CONFIGURATIONS.CLOSE.HEIGHT;
 
     if (isMobile()) {
-        
+
         if (videoOrientation === Orientation.PORTRAIT) {
-            if (FLOW === FLOW_TYPE.CLOSE) {
-                mWidth = factorHeight / (SILHUETTE_CONFIGURATIONS.CLOSE.HEIGHT / SILHUETTE_CONFIGURATIONS.CLOSE.WIDTH);
-            }
-            else {
-                mWidth = factorHeight / (SILHUETTE_CONFIGURATIONS.AWAY.HEIGHT / SILHUETTE_CONFIGURATIONS.AWAY.WIDTH);
-            }
+            mWidth = factorHeight / (SILHUETTE_CONFIGURATIONS.CLOSE.HEIGHT / SILHUETTE_CONFIGURATIONS.CLOSE.WIDTH);
 
             mHeight = factorHeight;
         } else {
@@ -988,34 +963,31 @@ const loadMask = async (color) => {
     let fractionX = 0.15;
     let fractionWidthX = halfMWidth * fractionX;
 
-    
-
-    
     let point1X = mBoxXCenter + halfMWidth;
     let point1Y = mBoxYCenter + half14Height;
 
-    
+
     let point2X = mBoxXCenter + fractionWidthX;
     let point2Y = mBoxYCenter + halfHeight;
 
-    
+
     let point3H = mBoxXCenter - fractionWidthX * 2;
 
-    
+
     let point4X = mBoxXCenter - halfMWidth;
     let point4Y = mBoxYCenter + half14Height;
 
-    
+
     let point5V = mBoxYCenter - half14Height;
 
-    
+
     let point6X = mBoxXCenter - fractionWidthX;
     let point6Y = mBoxYCenter - halfHeight;
 
-    
+
     let point7h = fractionWidthX * 2;
 
-    
+
     let point8X = mBoxXCenter + halfMWidth;
     let point8Y = mBoxYCenter - half14Height;
 
@@ -1038,12 +1010,12 @@ const loadMask = async (color) => {
     let d = `${mov0}${v0}${h0}${v1}${z0}${mov1}${arc1}${h1}${arc2}${v2}${arc3}${h2}${arc4}${z}`;
     let xmlns = 'http://www.w3.org/2000/svg';
 
-    
+
     if (!svgMask) {
         svgMask = document.createElementNS(xmlns, 'svg');
     }
 
-    
+
     svgMask.setAttributeNS(
         null,
         'viewBox',
@@ -1054,12 +1026,12 @@ const loadMask = async (color) => {
     svgMask.style.display = 'block';
     svgMask.setAttributeNS(null, 'id', `svgMask`);
 
-    
+
     if (!defs) {
         defs = document.createElementNS(xmlns, 'defs');
     }
 
-    
+
     if (!style) {
         style = document.createElementNS(xmlns, 'style');
     }
@@ -1069,18 +1041,18 @@ const loadMask = async (color) => {
         groupMain = document.createElementNS(xmlns, 'g');
     }
 
-    
+
     groupMain.setAttributeNS(null, 'id', `main`);
     groupMain.setAttributeNS(null, 'data-name', `main`);
 
-    
+
     if (!groupMask) {
         groupMask = document.createElementNS(xmlns, 'g');
     }
 
     groupMask.setAttributeNS(null, 'id', `mask`);
 
-    
+
     if (!pathBackground) {
         pathBackground = document.createElementNS(xmlns, 'path');
     }
@@ -1093,7 +1065,7 @@ const loadMask = async (color) => {
         pathFocus = document.createElementNS(xmlns, 'rect');
     }
 
-    
+
     pathFocus.setAttributeNS(null, 'id', `focus-silhuette`);
     pathFocus.setAttributeNS(null, 'class', `cls-focus`);
     pathFocus.setAttributeNS(null, 'x', point4X);
@@ -1102,7 +1074,7 @@ const loadMask = async (color) => {
     pathFocus.setAttributeNS(null, 'height', mHeight);
     pathFocus.setAttributeNS(null, 'rx', arcXY);
 
-    
+
     if (!exists) {
         groupMask.appendChild(pathBackground);
         groupMask.appendChild(pathFocus);
@@ -1118,39 +1090,60 @@ const setTopLabelMessage = () => {
     document.getElementById("message").style.top = `${cameraVideo.offsetHeight / 2 - mHeight / 2 - 25}px`;
 };
 
-var init = (TYPE, COLOR_SILHUETTE_PRIMARY, COLOR_SILHUETTE_SECONDARY) => {
+var initCameraNormal = (COLOR_SILHUETTE_PRIMARY) => {
     if (!isSupportBrowser) return;
 
-    let _TYPE = parseInt(TYPE);
+    TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
+    TYPE_PROCESS_INITIAL = TYPE_CAMERA.CAMERA_NORMAL;
 
-    if (_TYPE === TYPE_CAMERA.CAMERA_NORMAL || _TYPE === TYPE_CAMERA.CAMERA_INTELIGENCE) {
-        TYPE_PROCESS = _TYPE;
-        TYPE_PROCESS_INITIAL = _TYPE;
+    if (COLOR_SILHUETTE_PRIMARY !== "" && COLOR_SILHUETTE_PRIMARY !== undefined && COLOR_SILHUETTE_PRIMARY !== null) {
+        COLOR_SILHUETTE.SECONDARY = COLOR_SILHUETTE_PRIMARY;
     }
-    else {
-        TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
-        TYPE_PROCESS_INITIAL = TYPE_CAMERA.CAMERA_NORMAL;
-    }
-	
-	if(COLOR_SILHUETTE_PRIMARY !== "" && COLOR_SILHUETTE_PRIMARY !== undefined && COLOR_SILHUETTE_PRIMARY !== null){
-	    COLOR_SILHUETTE.PRIMARY = COLOR_SILHUETTE_PRIMARY;
-	}
-	if(COLOR_SILHUETTE_SECONDARY !== "" && COLOR_SILHUETTE_SECONDARY !== undefined && COLOR_SILHUETTE_SECONDARY !== null){
-	    COLOR_SILHUETTE.SECONDARY = COLOR_SILHUETTE_SECONDARY;
-	}
 
     FLOW = FLOW_TYPE.CLOSE;
+
+    setControls();
 
     isLoading = true;
     showBoxLoading(false);
 
-    if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
-        verifyFaceApiIsRunning();
-        downloadModels();
+    
+    callAllMethodsInit();
+};
+
+var initCameraInteligence = (COLOR_SILHUETTE_PRIMARY, COLOR_SILHUETTE_SECONDARY, COLOR_SILHUETTE_CAMERA_NORMAL) => {
+    if (!isSupportBrowser) return;
+
+    TYPE_PROCESS = TYPE_CAMERA.CAMERA_INTELIGENCE;
+    TYPE_PROCESS_INITIAL = TYPE_CAMERA.CAMERA_INTELIGENCE;
+
+    if (COLOR_SILHUETTE_PRIMARY !== "" && COLOR_SILHUETTE_PRIMARY !== undefined && COLOR_SILHUETTE_PRIMARY !== null) {
+        COLOR_SILHUETTE.PRIMARY = COLOR_SILHUETTE_PRIMARY;
     }
-    else {
-        callAllMethodsInit();
+    if (COLOR_SILHUETTE_SECONDARY !== "" && COLOR_SILHUETTE_SECONDARY !== undefined && COLOR_SILHUETTE_SECONDARY !== null) {
+        COLOR_SILHUETTE.SECONDARY = COLOR_SILHUETTE_SECONDARY;
     }
+    if (COLOR_SILHUETTE_CAMERA_NORMAL !== "" && COLOR_SILHUETTE_CAMERA_NORMAL !== undefined && COLOR_SILHUETTE_CAMERA_NORMAL !== null) {
+        COLOR_SILHUETTE.NEUTRAL = COLOR_SILHUETTE_CAMERA_NORMAL;
+    }
+
+    FLOW = FLOW_TYPE.CLOSE;
+
+    setControls();
+
+    isLoading = true;
+    showBoxLoading(false);
+
+    downloadModels();    
+};
+
+const setControls = () => {
+    cameraVideo = document.querySelector('#camera--video');
+    cameraCanvas = document.querySelector('#camera--canvas');
+    cameraOverlay = document.querySelector('#camera--overlay');
+    buttonCapture = document.querySelector('#camera--trigger');
+    boxLoading = document.querySelector('#box--loading');
+    boxCamera = document.querySelector('#box-camera');
 };
 
 const callAllMethodsInit = () => {
@@ -1174,7 +1167,7 @@ const setOrientation = () => {
         screen.mozOrientation ||
         screen.msOrientation;
 
-    
+
     if (orientation) {
         if (
             orientation == 'landscape-primary' ||
@@ -1185,7 +1178,7 @@ const setOrientation = () => {
             videoOrientation = Orientation.PORTRAIT;
         }
     } else {
-        
+
         if (boxCamera.offsetWidth > boxCamera.offsetHeight) {
             videoOrientation = Orientation.LANDSCAPE;
         } else {
@@ -1251,22 +1244,6 @@ const visibilityChange = () => {
         }
     }
 };
-
-document.addEventListener("DOMContentLoaded", () => {
-	
-	cameraVideo = document.querySelector('#camera--video');
-	
-	cameraCanvas = document.querySelector('#camera--canvas');
-	
-	cameraOverlay = document.querySelector('#camera--overlay');
-	
-	buttonCapture = document.querySelector('#camera--trigger');
-	
-	boxLoading = document.querySelector('#box--loading');
-	
-	boxCamera = document.querySelector('#box-camera');
-	document.getElementById('reinit').onclick = () => { location.reload(); };
-});
 
 window.addEventListener('orientationchange', orientationChange);
 navigator.mediaDevices.ondevicechange = orientationChange;
