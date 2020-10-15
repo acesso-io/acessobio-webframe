@@ -353,3 +353,12 @@
 }
 
 /*#endregion */
+
+/*#region Label Document */
+
+#box-camera #box--document-info #label--document {
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+}
+
+/*#endregion */

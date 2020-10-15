@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -28,6 +29,7 @@
     <link rel="stylesheet" href="public/css/pop-ups.css">
     <link rel="stylesheet" href="public/css/style.css">
 </head>
+
 <body>
     <!-- Camera -->
     <div id="box-camera">
@@ -41,7 +43,7 @@
         <canvas id="camera--overlay"></canvas>
 
         <!-- Camera trigger -->
-        <img id="camera--trigger" src="camera.svg" />
+        <img id="camera--trigger" src="public/images/camera.svg" />
 
         <!-- Popup Loading ... -->
         <div id="box--loading" style="display: none;">
@@ -88,20 +90,9 @@
     </div>
     <script src="public/js/app.js"></script>
     <script>
-
-        const setTypeProcess = (type) => {
-			let _type = parseInt(type);
-			if (_type === 1 || _type === 2) {
-                return _type;
-			}
-			else {
-				return 1;
-			}
-		};
-
         document.addEventListener("DOMContentLoaded", () => {
 
-            let _type = setTypeProcess(getUrlVars()["type"]);
+            let _type = parseInt((getUrlVars()["type"]));
 
             onSuccessCaptureJS = onSuccessCapture;
             onFailedCaptureJS = onFailedCapture;
@@ -115,12 +106,24 @@
             }
 
             if (_type === 1) {
-                initCameraNormal('#fff');   
-            }
-            else {
+                initCameraNormal('#fff');
+            } else if (_type === 2) {
                 initCameraInteligence('#2980ff', '#fff', '#fff');
+            } else if (_type === 3) {
+                initDocument(TYPE_DOCUMENT.CNH, '#fff');
+            } else if (_type === 4) {
+                initDocument(TYPE_DOCUMENT.RG, '#fff');
+            } else if (_type === 5) {
+                initDocument(TYPE_DOCUMENT.CPF, '#fff');
+            } else if (_type === 6) {
+                initDocument(TYPE_DOCUMENT.NEW_RG, '#fff');
+            } else if (_type === 7) {
+                initDocument(TYPE_DOCUMENT.OTHERS, '#fff', 'Título de eleitor');
+            } else {
+                initCameraNormal('#fff');
             }
         });
     </script>
 </body>
+
 </html>
