@@ -24,6 +24,7 @@ Esta biblioteca utiliza os recursos nativos do HTML 5, JavaScript e CSS e funcio
 
 - **CÂMERA NORMAL:** Exibe um frame com silhueta ajustavel automaticamente com base na proporcão da tela do usuário com captura manual. 
 - **CÂMERA INTELIGENTE:** Exibe um frame com silhueta ajustavel automaticamente com base na proporcão da tela do usuário, usando visão computacional na identificação da face, auxílio no enquadramento da face e captura automática.
+- **DOCUMENTOS:** Exibe um frame com silhueta ajustavel automaticamente com base na proporcão da tela do usuário com captura manual. Os tipos de documentos são CNH aberta, RG frente e verso, CPF, novo RG frente e verso, e OUTROS.
 
 ## Instalando
 
@@ -60,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 O método ``initCameraInteligence`` receberá um parâmetro como:
 
-  - **COLOR_SILHUETTE_PRIMARY:** Cor em hexadecimal da silhueta.
+  - **COLOR_SILHOUETTE_PRIMARY:** Cor em hexadecimal da silhueta.
 
 ## CÂMERA INTELIGENTE
 
@@ -87,11 +88,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 O método ``initCameraInteligence`` receberá três parâmetros como:
 
-  - **COLOR_SILHUETTE_PRIMARY:** Cor em hexadecimal que ao encontrar a face e estiver enquadrada corretamente irá mostrar na silhueta.
-  - **COLOR_SILHUETTE_SECONDARY:** Cor em hexadecimal que ao não encontrar a face ou não estiver enquadrada corretamente irá mostrar na silhueta.
-  - **COLOR_SILHUETTE_CAMERA_NORMAL:** Cor em hexadecimal da silhueta do CÂMERA NORMAL para os casos de celulares que não possuem recursos para que o CÂMERA INTELIGENTE funcione corretamente como mencionado na sessão de compatibilidade.
+  - **COLOR_SILHOUETTE_PRIMARY:** Cor em hexadecimal que ao encontrar a face e estiver enquadrada corretamente irá mostrar na silhueta.
+  - **COLOR_SILHOUETTE_SECONDARY:** Cor em hexadecimal que ao não encontrar a face ou não estiver enquadrada corretamente irá mostrar na silhueta.
+  - **COLOR_SILHOUETTE_CAMERA_NORMAL:** Cor em hexadecimal da silhueta do CÂMERA NORMAL para os casos de celulares que não possuem recursos para que o CÂMERA INTELIGENTE funcione corretamente como mencionado na sessão de compatibilidade.
 
-O método onSuccessCaptureJS retorna um objeto com as seguintes propredades:
+## Resultado do CÂMERA NORMAL e CÂMERA INTELIGENTE
+
+O método onSuccessCaptureJS retorna um objeto com as seguintes propriedades:
 
 ```javascript
 {
@@ -101,7 +104,7 @@ O método onSuccessCaptureJS retorna um objeto com as seguintes propredades:
         TYPE_PROCESS: int,
         TOTAL_SECONDS: int,
         Device: string,
-        Silhuette: {
+        SILHOUETTE: {
             width: int,
             height: int
         },
@@ -119,16 +122,179 @@ O método onSuccessCaptureJS retorna um objeto com as seguintes propredades:
 ```
  O log será útil na identificação de possíveis problemas de tamanho de silhueta ou qual tipo de captura foi realmente realizada pelo usuário:
  
+ - **base64:** Base64 da captura.
  - **TYPE_PROCESS_INITIAL:** Tipo de processo de captura invocado inicialmente como CÂMERA NORMAL ou CÂMERA INTELIGENTE. Celulares mais antigos não 
  possuem suporte a IA na qual o CÂMERA INTELIGENTE precisa, caso não possua será aberto o câmera normal com captura manual e neste caso o tipo de processo invocado será diferente do realizado pelo usuário.
  - **TYPE_PROCESS:** Tipo de processo de captura utilizado pelo usuário, como dito acima, alguns celulares não possuem suporte a IA ou caso ocorra algum problema com face-api é utilizado o processo de CÂMERA NORMAL.
  - **TOTAL_SECONDS:** Total de segundos do processo.
  - **Device:** Descrição do dispositivo.
- - **Silhuette:** Tamanho da silhueta criada.
+ - **SILHOUETTE:** Tamanho da silhueta criada.
  - **video:** Resuloção do vídeo.
  - **radio:** Aspect radio.
  - **screen:** Tamanho do screen.
+
+## Documentos
+
+O módulo de documentos possui silhuetas dos documentos como CNH, RG frente e verso, CPF, novo RG frente e verso, e OUTROS: 
+  
+  - **TYPE_DOCUMENT.CNH:** Possui silhuetta da CNH aberta, retornando o base64 respectivo.
+  - **TYPE_DOCUMENT.RG:** Possui silhuetta do RG frente e verso, retornando os dois base64 respectivos.
+  - **TYPE_DOCUMENT.CPF:** Possui silhuetta do CPF, retornando o base64 respectivo.
+  - **TYPE_DOCUMENT.NEW_RG:** Possui silhuetta do novo RG frente e verso, retornando os dois base64 respectivos. Caso o cliente queira usar os dois tipos de RGs para auxiliar o usuário poderia implementar um popup aonde o usuário escolhe qual é o tipo de RG dele antes de invocar a captura.
+  - **TYPE_DOCUMENT.OTHERS:** Possui silhuetta genérica aonde no invoke passa o título do documento que será mostrado na captura para o usuário.
+
+Para manipular o objeto com base64 da imagem capturada e log, os métodos de callback como demonstrados abaixo e disponíveis na classe index.html. Para realizar captura do CNH:
+
+```javascript      
+document.addEventListener("DOMContentLoaded", () => {
+
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
+
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
+
+    function onFailedCapture(err) {
+        console.log(err);
+    }
+
+    initDocument(TYPE_DOCUMENT.CNH, '#fff');
+});
+```
+
+Para realizar captura do RG frente e verso:
+
+```javascript      
+document.addEventListener("DOMContentLoaded", () => {
+
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
+
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
+
+    function onFailedCapture(err) {
+        console.log(err);
+    }
+
+    initDocument(TYPE_DOCUMENT.RG, '#fff');
+});
+```
+
+Para realizar captura do CPF:
+
+```javascript      
+document.addEventListener("DOMContentLoaded", () => {
+
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
+
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
+
+    function onFailedCapture(err) {
+        console.log(err);
+    }
+
+    initDocument(TYPE_DOCUMENT.CPF, '#fff');
+});
+  
+```
+
+Para realizar captura do novo RG frente e verso:
+
+```javascript      
+document.addEventListener("DOMContentLoaded", () => {
+
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
+
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
+
+    function onFailedCapture(err) {
+        console.log(err);
+    }
+
+    initDocument(TYPE_DOCUMENT.NEW_RG, '#fff');
+});
+  
+```
+
+Para realizar captura de 'Outros' passando o título do documento como exemplo 'Título de eleitor':
+
+```javascript      
+document.addEventListener("DOMContentLoaded", () => {
+
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
+
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
+
+    function onFailedCapture(err) {
+        console.log(err);
+    }
+
+    initDocument(TYPE_DOCUMENT.OTHERS, '#fff', 'Título de eleitor');
+});
+  
+```
+
+O método ``initDocument`` receberá três parâmetros como:
+
+  - **TYPE:** Tipo de processo de documento como TYPE_DOCUMENT.CNH, TYPE_DOCUMENT.RG, TYPE_DOCUMENT.CPF, TYPE_DOCUMENT.NEW_RG e TYPE_DOCUMENT.OTHERS.
+  - **COLOR_SILHOUETTE_PRIMARY:** Cor em hexadecimal da silhueta.
+  - **LABEL_DOCUMENT_OTHERS:** Usado somente para captura de 'Outros', aonde esse é o título do documento que aparecerá para o usuário.
+
+## Resultado de Documentos
+
+O método onSuccessCaptureJS retorna um objeto com as seguintes propriedades:
+
+```javascript
+{
+    base64: string,
+    base64Back: string,
+    Log: {
+        TYPE_PROCESS_DOCUMENT_INITIAL: int,
+        TYPE_PROCESS_DOCUMENT: int,
+        TOTAL_SECONDS: int,
+        Device: string,
+        SILHOUETTE: {
+            width: int,
+            height: int
+        },
+        video: {
+            width: int,
+            height: int
+        },
+        radio: float,
+        screen: {
+            width: int,
+            height: int
+        }
+    }
+}
+```
+
+ O log será útil na identificação de possíveis problemas de tamanho de silhueta ou qual tipo de captura foi realmente realizada pelo usuário:
  
+ - **base64:** Base64 da captura.
+ - **base64Back:** Base64 da captura. Em casos de documentos como RG e novo RG realizam captura de frente e verso, assim essa propriedade irá retornar a captura do verso sendo uma propriedade que só existirá nesses casos.
+ - **TYPE_PROCESS_DOCUMENT_INITIAL:** Tipo de processo de captura de documento invocado inicialmente.
+ - **TYPE_PROCESS_DOCUMENT:** Tipo de processo de captura de documento utilizado pelo usuário.
+ - **TOTAL_SECONDS:** Total de segundos do processo.
+ - **Device:** Descrição do dispositivo.
+ - **SILHOUETTE:** Tamanho da silhueta criada.
+ - **video:** Resuloção do vídeo.
+ - **radio:** Aspect radio.
+ - **screen:** Tamanho do screen.
+
 ## Customizações
 
 O arquivo ``pop-ups.css`` possui estilos dos pop-ups de Carregando, Orientação, Compatibilidade, Concluído e Mensagem de enquadramento. Fazem parte do fluxo e podem ser customizados com as devidas especificações abaixo:
@@ -152,11 +318,19 @@ Câmera normal - * [Clique aqui para abrir a demonstração](https://biodevelopm
 
 Câmera inteligente - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=2)
 
+Documentos (CNH aberta) - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=3)
+
+Documentos (RG frente e verso) - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=4)
+
+Documentos (CPF) - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=5)
+
+Documentos (Novo RG frente e verso) - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=6)
+
+Documentos (Outros) - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=7)
 
 ## Construido com
 
 * [face-api.js](https://github.com/justadudewhohacks/face-api.js) - Framework de análise biométrica.
-
 
 ## Versionamento
 
