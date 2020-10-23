@@ -264,7 +264,6 @@ const gotStream = (mediaStream) => {
         setTrack(mediaStream);
         // Refresh button list in case labels have become available
     }
-    return navigator.mediaDevices.enumerateDevices();
 };
 
 const getUrlVars = () => {
@@ -419,8 +418,8 @@ const startCamera = () => {
 
     navigator.mediaDevices
         .getUserMedia(getConstraints())
-        .then(setMobileStyle())
         .then(gotStream)
+        .then(setMobileStyle())
         .then(setTypeSilhouette)
         .then(calcBtnCapturePos)
         .then(calcMarginMask)
@@ -428,6 +427,13 @@ const startCamera = () => {
             if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
                 verifyFaceApiIsRunning();
                 setConfiguration();
+            }
+            else {
+                if (isLoading) {
+                    hideBoxLoading();
+                    hideMessage();
+                    isLoading = false;
+                }
             }
         })
         .catch((error) => {
@@ -611,7 +617,7 @@ const verifyFaceApiIsRunning = () => {
     if (isFaceApiIsRunning) {
         return;
     }
-    else if (counterIsRunning >= 6) {
+    else if (counterIsRunning >= 8) {
         TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
         COLOR_SILHOUETTE.SECONDARY = COLOR_SILHOUETTE.NEUTRAL;
         loadMask(COLOR_SILHOUETTE.SECONDARY);
@@ -643,11 +649,6 @@ const onPlay = async () => {
             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF ||
             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG ||
             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
-            if (isLoading) {
-                hideBoxLoading();
-                hideMessage();
-                isLoading = false;
-            }
 
             if (
                 cameraVideo.paused ||
