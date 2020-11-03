@@ -14,24 +14,24 @@ const isMobile = () => {
         navigator.userAgent.match(/iPad/i) ||
         navigator.userAgent.match(/iPod/i) ||
         navigator.userAgent.match(/BlackBerry/i) ||
-        navigator.userAgent.match(/Windows Phone/i)
-        ? true
-        : false;
+        navigator.userAgent.match(/Windows Phone/i) ?
+        true :
+        false;
 };
 
 const isIOS = () => {
     return navigator.userAgent.match(/webOS/i) ||
         navigator.userAgent.match(/iPhone/i) ||
         navigator.userAgent.match(/iPad/i) ||
-        navigator.userAgent.match(/iPod/i)
-        ? true
-        : false;
+        navigator.userAgent.match(/iPod/i) ?
+        true :
+        false;
 };
 
 const isAndroid = () => {
-    return navigator.userAgent.match(/Android/i)
-        ? true
-        : false;
+    return navigator.userAgent.match(/Android/i) ?
+        true :
+        false;
 };
 
 const verifyAndSetPopupNotSupportBrowser = () => {
@@ -48,40 +48,33 @@ const verifyAndSetPopupNotSupportBrowser = () => {
 
             if (_isChrome || _isFirefox || _isEdge || _isFirefox) {
                 return true;
-            }
-            else {
+            } else {
                 document.getElementById('box--support').classList.add("android");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
             }
-        }
-        else if (isIOS()) {
+        } else if (isIOS()) {
             if (_isSafari && (!_isChrome && !_isOpera && !_isEdge && !_isFirefox)) {
                 return true;
-            }
-            else {
+            } else {
                 document.getElementById('box--support').classList.add("safari");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
             }
         }
-    }
-    else {
+    } else {
         if (!isIOS()) {
             if (_isChrome || _isOpera || _isEdge || _isFirefox) {
                 return true;
-            }
-            else {
+            } else {
                 document.getElementById('box--support').classList.add("android");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
             }
-        }
-        else if (isIOS()) {
+        } else if (isIOS()) {
             if (_isSafari && (!_isChrome && !_isOpera && !_isEdge && !_isFirefox)) {
                 return true;
-            }
-            else {
+            } else {
                 document.getElementById('box--support').classList.add("safari");
                 document.getElementById('box--support').style.display = 'block';
                 return false;
@@ -155,6 +148,12 @@ const FLOW_TYPE = {
     BACK: 2
 };
 
+let FACE_MODE = null;
+const FACE_MODE_TYPE = {
+    FRONT: 1,
+    BACK: 2
+}
+
 let _LABEL_DOCUMENT_OTHERS;
 let base64Front;
 
@@ -217,14 +216,12 @@ const isSafari =
     /constructor/i.test(window.HTMLElement) ||
     (function (p) {
         return p !== undefined && p.toString() === '[object SafariRemoteNotification]';
-    })(
-        !window['safari'] ||
+    })(!window['safari'] ||
         (typeof safari !== 'undefined' && safari.pushNotification)
     );
 
 // Chrome 1 - 79
-const isChrome =
-    !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+const isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
 
 // video da abertura da câmera
 let cameraVideo;
@@ -267,7 +264,8 @@ const gotStream = (mediaStream) => {
 };
 
 const getUrlVars = () => {
-    let vars = [], hash;
+    let vars = [],
+        hash;
     let hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
     for (let i = 0; i < hashes.length; i++) {
         hash = hashes[i].split('=');
@@ -379,8 +377,7 @@ const startCamera = () => {
         });
     }
 
-    if (
-        !constraints ||
+    if (!constraints ||
         !constraints.video ||
         !constraints.video.width ||
         !constraints.video.height ||
@@ -391,12 +388,12 @@ const startCamera = () => {
         !constraints.video.height.ideal ||
         !constraints.video.height.max
     ) {
-
         if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CNH ||
             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG ||
             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF ||
             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG ||
-            TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
+            TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS ||
+            (TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL && FACE_MODE === FACE_MODE_TYPE.BACK)) {
             constraintsBase.video.facingMode = "environment";
             defaultConstraints.video.facingMode = "environment";
             cameraVideo.style.webkitTransform = "none";
@@ -407,7 +404,7 @@ const startCamera = () => {
         Object.assign(constraints, constraintsBase);
         // exceto Safari
         if (!isSafari) {
-            if (isFirefox && isMobile() && (TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL || TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE)) {
+            if (isFirefox && isMobile() && ((TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL && FACE_MODE === FACE_MODE_TYPE.FRONT) || TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE)) {
                 defaultConstraints.video.facingMode = 'user';
             }
             Object.assign(constraints, defaultConstraints);
@@ -427,8 +424,7 @@ const startCamera = () => {
             if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
                 verifyFaceApiIsRunning();
                 setConfiguration();
-            }
-            else {
+            } else {
                 if (isLoading) {
                     hideBoxLoading();
                     hideMessage();
@@ -493,13 +489,11 @@ const calcBtnCapturePos = async () => {
         buttonCapture.style.bottom = (((cameraVideo.offsetHeight - mHeight) / 2) / 2 / 2) + 'px';
 
         buttonCapture.style.display = 'inline-block';
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CNH || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CNH || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
         buttonCapture.style.top = (bottomSilhouetteDocument + 10) + 'px';
         buttonCapture.style.display = 'inline-block';
         createBoxDocumentInfo();
-    }
-    else if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+    } else if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
         buttonCapture.style.display = 'none';
     }
 };
@@ -530,8 +524,7 @@ const updateView = () => {
     if (cameraOpen) {
         if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL || TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
             loadMask(COLOR_SILHOUETTE.SECONDARY);
-        }
-        else {
+        } else {
             loadMaskDocument(COLOR_SILHOUETTE.SECONDARY);
         }
     }
@@ -616,15 +609,13 @@ const updateTimeStats = (timeInMs) => {
 const verifyFaceApiIsRunning = () => {
     if (isFaceApiIsRunning) {
         return;
-    }
-    else if (counterIsRunning >= 8) {
+    } else if (counterIsRunning >= 8) {
         TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
         COLOR_SILHOUETTE.SECONDARY = COLOR_SILHOUETTE.NEUTRAL;
         loadMask(COLOR_SILHOUETTE.SECONDARY);
         calcBtnCapturePos();
         onPlay();
-    }
-    else {
+    } else {
         setTimeout(() => {
             counterIsRunning++;
             verifyFaceApiIsRunning();
@@ -665,8 +656,7 @@ const onPlay = async () => {
 
             const ts = Date.now();
             updateTimeStats(Date.now() - ts);
-        }
-        else if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
+        } else if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
             if (
                 cameraVideo.paused ||
                 cameraVideo.ended ||
@@ -692,8 +682,7 @@ const onPlay = async () => {
                 isTimerSessionContinueRunning = true;
                 startTimerSession();
                 isLoading = false;
-            }
-            else {
+            } else {
                 if (result) {
                     if (isCaptureReady) return setTimeout(() => onPlay());
 
@@ -715,8 +704,7 @@ const onPlay = async () => {
                             initTimerTake(1700);
                         }
                     }
-                }
-                else {
+                } else {
                     changeColorMask(COLOR_SILHOUETTE.SECONDARY);
                     hideMessage();
                 }
@@ -745,8 +733,7 @@ const initTimerTake = (milliseconds) => {
         if (isCentralized) {
             clearTimeout(timerTake);
             takePicture();
-        }
-        else {
+        } else {
             isTimerTaking = false;
             clearTimeout(timerTake);
         }
@@ -775,8 +762,7 @@ const takePicture = () => {
 
             completedAnimation();
             stopStuffsAfterTake();
-        }
-        else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
+        } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
 
             if (FLOW === FLOW_TYPE.FRONT) {
                 base64Front = getBase64Canvas();
@@ -791,8 +777,7 @@ const takePicture = () => {
 
 
                 return;
-            }
-            else if (FLOW === FLOW_TYPE.BACK) {
+            } else if (FLOW === FLOW_TYPE.BACK) {
                 let base64 = getBase64Canvas();
                 isCaptureReady = true;
                 setImageBackgroundAndLoading();
@@ -835,8 +820,7 @@ const getLog = () => {
                 height: screen.height
             }
         };
-    }
-    else if (TYPE_PROCESS_DOCUMENT !== null) {
+    } else if (TYPE_PROCESS_DOCUMENT !== null) {
         return {
             TYPE_PROCESS_DOCUMENT_INITIAL: TYPE_PROCESS_DOCUMENT_INITIAL,
             TYPE_PROCESS_DOCUMENT: TYPE_PROCESS_DOCUMENT,
@@ -876,8 +860,7 @@ const isCentralizedFace = (leftX, leftY, rightX, rightY, noseX, noseY) => {
         _centralized.overSilhouetteThresholdHorizontal = 4 / 100 * cameraVideo.offsetWidth;
         _centralized.faceTurnedSilhouetteThresholdHorizontal = 15 / 100 * cameraVideo.offsetWidth;
         _centralized.differenceNoseYThreshold = 7 / 100 * cameraVideo.offsetHeight;
-    }
-    else {
+    } else {
         _centralized.topSilhouetteThresholdVertical = 4 / 100 * cameraVideo.offsetHeight;
         _centralized.bottomSilhouetteThresholdVertical = 3 / 100 * cameraVideo.offsetHeight;
         _centralized.inSilhouetteThresholdHorizontal = 1 / 100 * cameraVideo.offsetWidth;
@@ -898,8 +881,7 @@ const isCentralizedFace = (leftX, leftY, rightX, rightY, noseX, noseY) => {
 
     if (_centralized.distanceLeftByNose >= _centralized.distanceRightByNose) {
         _centralized.differenceInDistance = _centralized.distanceLeftByNose - _centralized.distanceRightByNose;
-    }
-    else {
+    } else {
         _centralized.differenceInDistance = _centralized.distanceRightByNose - _centralized.distanceLeftByNose;
     }
 
@@ -918,39 +900,29 @@ const isCentralizedFace = (leftX, leftY, rightX, rightY, noseX, noseY) => {
 
         isCentralized = true;
         return true;
-    }
-    else {
+    } else {
 
         changeColorMask(COLOR_SILHOUETTE.SECONDARY);
 
         if (rightX - leftX > _centralized.silhoutteWidth) {
             showMessage('Afaste o rosto');
-        }
-        else if (rightX - leftX < _centralized.silhoutteWidth - _centralized.inSilhouetteThresholdHorizontal) {
+        } else if (rightX - leftX < _centralized.silhoutteWidth - _centralized.inSilhouetteThresholdHorizontal) {
             showMessage('Aproxime o rosto');
-        }
-        else if (noseY <= _centralized.CSPHeightTop) {
+        } else if (noseY <= _centralized.CSPHeightTop) {
             showMessage('Centralize o rosto');
-        }
-        else if (noseY >= _centralized.CSPHeightBottom) {
+        } else if (noseY >= _centralized.CSPHeightBottom) {
             showMessage('Centralize o rosto');
-        }
-        else if (leftX <= _centralized.CSPWidthLeft - _centralized.overSilhouetteThresholdHorizontal) {
+        } else if (leftX <= _centralized.CSPWidthLeft - _centralized.overSilhouetteThresholdHorizontal) {
             showMessage('Rosto para cima');
-        }
-        else if (rightX >= _centralized.CSPWidthRight + _centralized.overSilhouetteThresholdHorizontal) {
+        } else if (rightX >= _centralized.CSPWidthRight + _centralized.overSilhouetteThresholdHorizontal) {
             showMessage('Rosto para baixo');
-        }
-        else if (_centralized.differenceLeftY > _centralized.differenceNoseYThreshold && _centralized.differenceRightY > _centralized.differenceNoseYThreshold) {
+        } else if (_centralized.differenceLeftY > _centralized.differenceNoseYThreshold && _centralized.differenceRightY > _centralized.differenceNoseYThreshold) {
             showMessage('Rosto inclinado');
-        }
-        else if (_centralized.differenceLeftY < -_centralized.differenceNoseYThreshold && _centralized.differenceRightY < -_centralized.differenceNoseYThreshold) {
+        } else if (_centralized.differenceLeftY < -_centralized.differenceNoseYThreshold && _centralized.differenceRightY < -_centralized.differenceNoseYThreshold) {
             showMessage('Rosto inclinado');
-        }
-        else if (_centralized.distanceLeftByNose > _centralized.distanceRightByNose) {
+        } else if (_centralized.distanceLeftByNose > _centralized.distanceRightByNose) {
             showMessage('Rosto de lado');
-        }
-        else if (_centralized.distanceLeftByNose < _centralized.distanceRightByNose) {
+        } else if (_centralized.distanceLeftByNose < _centralized.distanceRightByNose) {
             showMessage('Rosto de lado');
         }
 
@@ -1028,8 +1000,7 @@ const loadMask = async (color) => {
         if (aspectRatioVideo > currentAspectRatio) {
             videoHeight = cameraVideo.offsetWidth / aspectRatioVideo;
             videoWidth = cameraVideo.offsetWidth;
-        }
-        else {
+        } else {
             videoHeight = cameraVideo.offsetHeight;
             videoWidth = cameraVideo.offsetHeight * aspectRatioVideo;
         }
@@ -1198,12 +1169,11 @@ const loadMask = async (color) => {
 const setTypeSilhouette = () => {
     if (TYPE_PROCESS === TYPE_CAMERA.CAMERA_NORMAL || TYPE_PROCESS === TYPE_CAMERA.CAMERA_INTELIGENCE) {
         loadMask(COLOR_SILHOUETTE.SECONDARY);
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CNH ||
-             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG ||
-             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF ||
-             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG ||
-             TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CNH ||
+        TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG ||
+        TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF ||
+        TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG ||
+        TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
         loadMaskDocument(COLOR_SILHOUETTE.SECONDARY);
     }
 };
@@ -1483,8 +1453,7 @@ const loadMaskDocument = async (color) => {
         svgText.innerHTML = '';
         let textNode = document.createTextNode("FOTO");
         svgText.appendChild(textNode);
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG) {
         if (FLOW === FLOW_TYPE.FRONT) {
             if (!react1) {
                 react1 = document.createElementNS(xmlns, 'rect');
@@ -1524,8 +1493,7 @@ const loadMaskDocument = async (color) => {
             svgText.innerHTML = '';
             let textNode = document.createTextNode("FOTO");
             svgText.appendChild(textNode);
-        }
-        else if (FLOW === FLOW_TYPE.BACK) {
+        } else if (FLOW === FLOW_TYPE.BACK) {
             if (!react1) {
                 react1 = document.createElementNS(xmlns, 'rect');
             }
@@ -1567,8 +1535,7 @@ const loadMaskDocument = async (color) => {
             let textNode = document.createTextNode("NOME");
             svgText.appendChild(textNode);
         }
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
         if (FLOW === FLOW_TYPE.FRONT) {
             if (!react1) {
                 react1 = document.createElementNS(xmlns, 'rect');
@@ -1595,8 +1562,7 @@ const loadMaskDocument = async (color) => {
             svgText.innerHTML = '';
             let textNode = document.createTextNode("FOTO");
             svgText.appendChild(textNode);
-        }
-        else if (FLOW === FLOW_TYPE.BACK) {
+        } else if (FLOW === FLOW_TYPE.BACK) {
             if (!react1) {
                 react1 = document.createElementNS(xmlns, 'rect');
             }
@@ -1623,8 +1589,7 @@ const loadMaskDocument = async (color) => {
             let textNode = document.createTextNode("DIGITAL");
             svgText.appendChild(textNode);
         }
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF) {
         if (!svgText) {
             svgText = document.createElementNS(xmlns, 'text');
         }
@@ -1665,30 +1630,25 @@ const loadMaskDocument = async (color) => {
             groupMask.appendChild(react1);
             groupMask.appendChild(react2);
             groupMask.appendChild(svgText);
-        }
-        else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG) {
+        } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG) {
             if (FLOW === FLOW_TYPE.FRONT) {
                 groupMask.appendChild(react1);
                 groupMask.appendChild(react2);
                 groupMask.appendChild(svgText);
-            }
-            else if (FLOW === FLOW_TYPE.BACK) {
+            } else if (FLOW === FLOW_TYPE.BACK) {
                 groupMask.appendChild(react1);
                 groupMask.appendChild(react2);
                 groupMask.appendChild(svgText);
             }
-        }
-        else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
+        } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
             if (FLOW === FLOW_TYPE.FRONT) {
                 groupMask.appendChild(react1);
                 groupMask.appendChild(svgText);
-            }
-            else if (FLOW === FLOW_TYPE.BACK) {
+            } else if (FLOW === FLOW_TYPE.BACK) {
                 groupMask.appendChild(react1);
                 groupMask.appendChild(svgText);
             }
-        }
-        else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF) {
+        } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF) {
             groupMask.appendChild(svgText);
             groupMask.appendChild(svgText2);
         }
@@ -1705,7 +1665,7 @@ const setTopLabelMessage = () => {
     document.getElementById("message").style.top = `${cameraVideo.offsetHeight / 2 - mHeight / 2 - 25}px`;
 };
 
-var initCameraNormal = (COLOR_SILHOUETTE_PRIMARY) => {
+var initCameraNormal = (COLOR_SILHOUETTE_PRIMARY, FACE_MODE_CAMERA) => {
     if (!isSupportBrowser) return;
 
     TYPE_PROCESS = TYPE_CAMERA.CAMERA_NORMAL;
@@ -1713,6 +1673,13 @@ var initCameraNormal = (COLOR_SILHOUETTE_PRIMARY) => {
 
     if (COLOR_SILHOUETTE_PRIMARY !== "" && COLOR_SILHOUETTE_PRIMARY !== undefined && COLOR_SILHOUETTE_PRIMARY !== null) {
         COLOR_SILHOUETTE.SECONDARY = COLOR_SILHOUETTE_PRIMARY;
+    }
+
+    let _FACE_MODE = parseInt(FACE_MODE_CAMERA);
+    if (_FACE_MODE === FACE_MODE_TYPE.FRONT || _FACE_MODE === FACE_MODE_TYPE.BACK) {
+        FACE_MODE = _FACE_MODE;
+    } else {
+        FACE_MODE = FACE_MODE_TYPE.FRONT;
     }
 
     setControls();
@@ -1764,13 +1731,11 @@ var initDocument = (TYPE, COLOR_SILHOUETTE_PRIMARY, LABEL_DOCUMENT_OTHERS) => {
         if (_TYPE === TYPE_DOCUMENT.OTHERS) {
             if (LABEL_DOCUMENT_OTHERS !== "" && LABEL_DOCUMENT_OTHERS !== undefined && LABEL_DOCUMENT_OTHERS !== null) {
                 _LABEL_DOCUMENT_OTHERS = LABEL_DOCUMENT_OTHERS;
-            }
-            else {
+            } else {
                 _LABEL_DOCUMENT_OTHERS = 'Outros';
             }
         }
-    }
-    else {
+    } else {
         onFailedCaptureJS('Tipo de documento inválido!');
         return;
     }
@@ -1793,8 +1758,7 @@ const createBoxDocumentInfo = () => {
         boxInfo.innerHTML = `<span id="label--document">${getLabelDocument()}</span>`;
         boxCamera.appendChild(boxInfo);
         document.getElementById('label--document').style.top = (_height / 2) + 'px';
-    }
-    else {
+    } else {
         let _height = (cameraVideo.offsetHeight - parseFloat(buttonCapture.style.top.replace('px', ''))) - buttonCapture.height / 2;
         document.getElementById('box--document-info').style.height = _height + 'px';
         document.getElementById('box--document-info').innerHTML = `<span id="label--document">${getLabelDocument()}</span>`;
@@ -1840,19 +1804,15 @@ const setConfiguration = () => {
 const getLabelDocument = () => {
     if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CNH) {
         return 'CNH Aberta';
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.CPF) {
         return 'CPF';
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.RG || TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.NEW_RG) {
         if (FLOW === FLOW_TYPE.FRONT) {
             return 'RG Frente';
-        }
-        else {
+        } else {
             return 'RG Verso';
         }
-    }
-    else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
+    } else if (TYPE_PROCESS_DOCUMENT === TYPE_DOCUMENT.OTHERS) {
         return _LABEL_DOCUMENT_OTHERS;
     }
 };
@@ -1884,8 +1844,7 @@ const setOrientation = () => {
     if (isMobile()) {
         if (videoOrientation === Orientation.LANDSCAPE) {
             showBoxLockOrientation();
-        }
-        else {
+        } else {
             hideBoxLockOrientation();
         }
     }
@@ -1943,4 +1902,3 @@ const visibilityChange = () => {
 window.addEventListener('orientationchange', orientationChange);
 navigator.mediaDevices.ondevicechange = orientationChange;
 document.addEventListener('visibilitychange', visibilityChange, false);
-
