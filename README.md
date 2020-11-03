@@ -32,6 +32,7 @@ A instalação e implementação do Mobbio Web em seu projeto é muito simples e
 
 - Adicione o nosso projeto a sua máquina através do Github ou download do mesmo. 
 - Remomeie a classe ``index.html`` para um nome que se enquadre ao contexto geral do seu projeto ou mantenha o nome afim de projetos do aspecto poc.
+- Abra o arquivo ``public/app.js`` e no método ``downloadModels`` configure as urls dos modelos do face-api se necessario.
 
 Pronto! O seu projeto já está pronto para o uso de nossa ferramenta.
 
@@ -59,9 +60,32 @@ document.addEventListener("DOMContentLoaded", () => {
   
 ```
 
-O método ``initCameraInteligence`` receberá um parâmetro como:
+O CÂMERA NORMAL também pode ser usado no modo câmera traseira, segue abaixo o exemplo:
+
+```javascript
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    onSuccessCaptureJS = onSuccessCapture;
+    onFailedCaptureJS = onFailedCapture;
+
+    function onSuccessCapture(obj) {
+        console.log(obj);
+    }
+
+    function onFailedCapture(err) {
+        console.log(err);
+    }
+
+    initCameraNormal('#fff', FACE_MODE_TYPE.BACK);
+});
+  
+```
+
+O método ``initCameraNormal`` receberá um parâmetro como:
 
   - **COLOR_SILHOUETTE_PRIMARY:** Cor em hexadecimal da silhueta.
+  - **FACE_MODE_CAMERA:** Possui dois tipos como o FACE_MODE_TYPE.FRONT é o valor padrão, aonde abre a câmera frontal do celular. E FACE_MODE_TYPE.BACK aonde abre a câmera traseira.
 
 ## CÂMERA INTELIGENTE
 
@@ -315,6 +339,8 @@ O arquivo ``pop-ups.css`` possui estilos dos pop-ups de Carregando, Orientação
 ## DEMO
 
 Câmera normal - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=1)
+
+Câmera normal (Traseira) - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=8)
 
 Câmera inteligente - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=2)
 
