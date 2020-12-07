@@ -31,18 +31,9 @@
 </head>
 
 <body>
-    <!-- Camera -->
     <div id="box-camera">
         <span id="message"></span>
-        <!-- Camera sensor -->
-        <canvas id="camera--canvas"></canvas>
-        <!-- Camera view -->
-        <video id="camera--video" autoplay="" playsinline="" muted="" controls="false" webkit-playsinline="true" playsinline="true"></video>
 
-        <!-- Canvas landmarks -->
-        <canvas id="camera--overlay"></canvas>
-
-        <!-- Camera trigger -->
         <img id="camera--trigger" src="public/images/camera.svg" />
 
         <!-- Popup Loading ... -->
@@ -59,71 +50,548 @@
                 <img id="lock-image" src="public/images/lock.svg" alt="Lock" />
             </div>
         </div>
+    </div>
 
-        <!-- Popup Support ... -->
-        <div id="box--support" style="display: none;">
-            <div class="box-in">
-                <div class="text">Navegadores permitidos:</div>
-                <ul class="browsers">
-                    <li class="li-android"><img src="public/icons/chrome.png" alt="Chrome" /></li>
-                    <li class="li-android"><img src="public/icons/edge.png" alt="Edge" /></li>
-                    <li class="li-android"><img src="public/icons/opera.png" alt="Opera" /></li>
-                    <li class="li-android"><img src="public/icons/firefox.png" alt="Firefox" /></li>
-                    <li class="li-ios"><img src="public/icons/safari.png" alt="Safari" /></li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Popup Completed ... -->
-        <div id="box--completed" style="display: none;">
-            <div class="box-in">
-                <div id="success-checkmark" class="success-checkmark">
-                    <div class="check-icon">
-                        <span class="icon-line line-tip"></span>
-                        <span class="icon-line line-long"></span>
-                        <div class="icon-circle"></div>
-                        <div class="icon-fix"></div>
-                    </div>
+    <!-- Popup Completed ... -->
+    <div id="box--completed" style="display: none;">
+        <div class="box-in">
+            <div id="success-checkmark" class="success-checkmark">
+                <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="public/js/app.js"></script>
+
+    <!-- Popup Support ... -->
+    <div id="box--support" style="display: none;">
+        <div class="box-in">
+            <div class="text">Navegadores permitidos:</div>
+            <ul class="suport-browsers">
+                <li id="li-chrome"><img src="public/icons/chrome.png" alt="Chrome" /></li>
+                <li id="li-edge"><img src="public/icons/edge.png" alt="Edge" /></li>
+                <li id="li-opera"><img src="public/icons/opera.png" alt="Opera" /></li>
+                <li id="li-firefox"><img src="public/icons/firefox.png" alt="Firefox" /></li>
+                <li id="li-safari"><img src="public/icons/safari.png" alt="Safari" /></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="box--loading-models" style="display: none;">
+        <div class="box-in">
+            <div class="loader">Carregando modelos...</div>
+            <div style="margin-top: 15px; font-family: 'Roboto', sans-serif;">Carregando modelos...</div>
+        </div>
+    </div>
+
+    <div id="box--error" style="display: none;">
+        <div class="box-in">
+            <div id="error-message" style="font-family: 'Roboto', sans-serif; font-size: 20px;">Ops... Algo inesperado aconteceu!</div>
+        </div>
+    </div>
+
+    <style>
+        /*#region Popup Completed */
+        
+        #box--completed {
+            display: inline-block;
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+        }
+        
+        #box--completed .box-in {
+            position: absolute;
+            top: 45%;
+            right: 50%;
+            transform: translate(50%, -50%);
+            z-index: 10;
+            text-align: center;
+        }
+        
+        #box--completed .success-checkmark {
+            width: 80px;
+            height: 115px;
+            margin: 0 auto;
+        }
+        
+        #box--completed .success-checkmark .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid rgba(41, 128, 255, 1);
+        }
+        
+        #box--completed .success-checkmark .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+        
+        #box--completed .success-checkmark .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+        
+        #box--completed .success-checkmark .check-icon::before,
+        #box--completed .success-checkmark .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background-color: transparent;
+            transform: rotate(-45deg);
+        }
+        
+        #box--completed .success-checkmark .check-icon .icon-line {
+            height: 5px;
+            background-color: rgba(41, 128, 255, 1);
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+        
+        #box--completed .success-checkmark .check-icon .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 0.75s;
+        }
+        
+        #box--completed .success-checkmark .check-icon .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 0.75s;
+        }
+        
+        #box--completed .success-checkmark .check-icon .icon-circle {
+            top: -4px;
+            left: -4px;
+            z-index: 10;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: absolute;
+            box-sizing: content-box;
+            border: 4px solid rgba(41, 128, 255, 1);
+        }
+        
+        #box--completed .success-checkmark .check-icon .icon-fix {
+            top: 8px;
+            width: 5px;
+            left: 26px;
+            z-index: 1;
+            height: 85px;
+            position: absolute;
+            transform: rotate(-45deg);
+            background-color: transparent;
+        }
+        
+        @keyframes rotate-circle {
+            0% {
+                transform: rotate(-45deg);
+            }
+            5% {
+                transform: rotate(-45deg);
+            }
+            12% {
+                transform: rotate(-405deg);
+            }
+            100% {
+                transform: rotate(-405deg);
+            }
+        }
+        
+        @keyframes icon-line-tip {
+            0% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            54% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            70% {
+                width: 50px;
+                left: -8px;
+                top: 37px;
+            }
+            84% {
+                width: 17px;
+                left: 21px;
+                top: 48px;
+            }
+            100% {
+                width: 25px;
+                left: 14px;
+                top: 45px;
+            }
+        }
+        
+        @keyframes icon-line-long {
+            0% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            65% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            84% {
+                width: 55px;
+                right: 0px;
+                top: 35px;
+            }
+            100% {
+                width: 47px;
+                right: 8px;
+                top: 38px;
+            }
+        }
+        /*#endregion */
+        /*#region Popup Suport */
+        
+        #box--support {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+            z-index: 63;
+            left: 0;
+            top: 0;
+        }
+        
+        #box--support .box-in {
+            width: 100%;
+            position: absolute;
+            top: 45%;
+            right: 50%;
+            transform: translate(50%, -50%);
+            z-index: 10;
+            text-align: center;
+        }
+        
+        #box--support .suport-browsers {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #box--support .suport-browsers .li-android {
+            display: inline-block;
+        }
+        
+        #box--support .suport-browsers .li-ios {
+            display: inline-block;
+        }
+        
+        #box--support .suport-browsers li {
+            display: inline-block;
+        }
+        
+        #box--support .suport-browsers li img {
+            width: 40px;
+            height: 40px;
+            filter: gray;
+            -webkit-filter: grayscale(1);
+            filter: grayscale(1);
+        }
+        
+        #box--support .suport-browsers li.no-grayscale img {
+            -webkit-filter: grayscale(0);
+            filter: grayscale(0);
+        }
+        
+        #box--support .text {
+            text-align: center;
+            font-family: 'Roboto', sans-serif;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        /*#endregion */
+        /*#region Popup loading models */
+        
+        #box--loading-models {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            background-color: transparent;
+            z-index: 62;
+            left: 0;
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-color: #fff;
+        }
+        
+        #box--loading-models .box-in {
+            position: absolute;
+            top: 45%;
+            right: 50%;
+            transform: translate(50%, -50%);
+            z-index: 10;
+            text-align: center;
+        }
+        
+        #box--loading-models .loader,
+        #box--loading-models .loader:after {
+            border-radius: 50%;
+            width: 88px;
+            height: 88px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        #box--loading-models .loader {
+            margin: 0px auto;
+            font-size: 10px;
+            position: relative;
+            text-indent: -9999em;
+            border-top: 4px solid rgba(255, 255, 255, 0.0);
+            border-right: 4px solid rgba(255, 255, 255, 0.0);
+            border-bottom: 4px solid rgba(255, 255, 255, 0.0);
+            border-left: 4px solid rgba(41, 128, 255, 1);
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-animation: load9 1.5s infinite linear;
+            animation: load9 1.5s infinite linear;
+        }
+        
+        @-webkit-keyframes load9 {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes load9 {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        /*#endregion */
+        /*#region Popup error */
+        
+        #box--error {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            background-color: transparent;
+            z-index: 62;
+            left: 0;
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-color: #fff;
+        }
+        
+        #box--error .box-in {
+            position: absolute;
+            top: 45%;
+            right: 50%;
+            transform: translate(50%, -50%);
+            z-index: 10;
+            text-align: center;
+        }
+        
+        #box--loading-models .loader,
+        #box--loading-models .loader:after {
+            border-radius: 50%;
+            width: 88px;
+            height: 88px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        #box--loading-models .text {
+            margin: 0px auto;
+            text-align: center;
+        }
+        /*#endregion */
+    </style>
+    <script src="public/js/app-plugin.js"></script>
     <script>
+        var acessoWebFrame;
+
+        const getUrlVars = () => {
+            let vars = [],
+                hash;
+            let hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for (let i = 0; i < hashes.length; i++) {
+                hash = hashes[i].split('=');
+                vars.push(hash[0]);
+                vars[hash[0]] = hash[1];
+            }
+            return vars;
+        };
+
+        const showCompletedAnimation = () => {
+            document.getElementById('box--completed').style.display = 'inline-block';
+        };
+
+        const hideCompletedAnimation = () => {
+            document.getElementById('box--completed').style.display = 'none';
+        };
+
+        const showLoadingModels = () => {
+            document.getElementById('box--loading-models').style.display = 'inline-block';
+        };
+
+        const hideLoadingModels = () => {
+            document.getElementById('box--loading-models').style.display = 'none';
+        };
+
+        const showError = (message = "Ops... Algo inesperado aconteceu!") => {
+            document.getElementById('error-message').innerHTML = message;
+            document.getElementById('box--error').style.display = 'inline-block';
+        };
+
+        const hideError = () => {
+            document.getElementById('box--error').style.display = 'none';
+        };
+
+        const setTypeCamera = (_type) => {
+
+            switch (_type) {
+                case 1:
+                    acessoWebFrame.initCameraNormal('#fff');
+                    break;
+                case 2:
+                    showLoadingModels();
+                    acessoWebFrame.acessoWebFrameModel.loadModelsCameraInteligence()
+                        .then(() => {
+                            hideLoadingModels();
+                            acessoWebFrame.initCameraInteligence('#2980ff', '#ed2121', '#fff');
+                        })
+                        .catch((e) => {
+                            showError(e);
+                            console.log(e);
+                        });
+                    break;
+                case 3:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.CNH, '#fff');
+                    break;
+                case 4:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.RG, '#fff');
+                    break;
+                case 5:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.CPF, '#fff');
+                    break;
+                case 6:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.NEW_RG, '#fff');
+                    break;
+                case 7:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.OTHERS, '#fff', 'Título de eleitor');
+                    break;
+                case 8:
+                    acessoWebFrame.initCameraNormal('#fff', acessoWebFrame.FACE_MODE_TYPE.BACK);
+                    break;
+                case 9:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.RG_FRONT, '#fff');
+                    break;
+                case 10:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.RG_BACK, '#fff');
+                    break;
+                case 11:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.NEW_RG_FRONT, '#fff');
+                    break;
+                case 12:
+                    acessoWebFrame.initDocument(acessoWebFrame.TYPE_DOCUMENT.NEW_RG_BACK, '#fff');
+                    break;
+                default:
+                    acessoWebFrame.initCameraNormal('#fff');
+            }
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
 
             let _type = parseInt((getUrlVars()["type"]));
 
-            onSuccessCaptureJS = onSuccessCapture;
-            onFailedCaptureJS = onFailedCapture;
+            acessoWebFrame = new AcessoWebFrame();
 
-            function onSuccessCapture(obj) {
+            onSuccessCapture = (obj) => {
+                showCompletedAnimation();
                 console.log(obj);
             }
 
-            function onFailedCapture(err) {
+            onFailedCapture = (err) => {
+                if (err === "navigator.MediaDevices.getUserMedia error: Permission denied, NotAllowedError") {
+                    showError('Você negou o acesso a câmera. Procure pelo icone de câmera na barra de navegação e mude sua decisão.')
+                }
+
                 console.log(err);
             }
 
-            if (_type === 1) {
-                initCameraNormal('#fff');
-            } else if (_type === 2) {
-                initCameraInteligence('#2980ff', '#fff', '#fff');
-            } else if (_type === 3) {
-                initDocument(TYPE_DOCUMENT.CNH, '#fff');
-            } else if (_type === 4) {
-                initDocument(TYPE_DOCUMENT.RG, '#fff');
-            } else if (_type === 5) {
-                initDocument(TYPE_DOCUMENT.CPF, '#fff');
-            } else if (_type === 6) {
-                initDocument(TYPE_DOCUMENT.NEW_RG, '#fff');
-            } else if (_type === 7) {
-                initDocument(TYPE_DOCUMENT.OTHERS, '#fff', 'Título de eleitor');
-            } else if (_type === 8) {
-                initCameraNormal('#fff', FACE_MODE_TYPE.BACK);
-            } else {
-                initCameraNormal('#fff');
-            }
+            onBrowserNotSupport = (obj) => {
+                console.log(obj);
+                let boxSupport = document.getElementById('box--support');
+
+                for (let i = 0; i < obj.listBrowsersSupport.length; i++) {
+                    if (obj.listBrowsersSupport[i] === 'Chrome') {
+                        boxSupport.querySelector('#li-chrome').classList.add('no-grayscale');
+                        continue;
+                    }
+
+                    if (obj.listBrowsersSupport[i] === 'Firefox') {
+                        boxSupport.querySelector('#li-firefox').classList.add('no-grayscale');
+                        continue;
+                    }
+
+                    if (obj.listBrowsersSupport[i] === 'Edge') {
+                        boxSupport.querySelector('#li-edge').classList.add('no-grayscale');
+                        continue;
+                    }
+
+                    if (obj.listBrowsersSupport[i] === 'Opera') {
+                        boxSupport.querySelector('#li-opera').classList.add('no-grayscale');
+                        continue;
+                    }
+
+                    if (obj.listBrowsersSupport[i] === 'Safari') {
+                        boxSupport.querySelector('#li-safari').classList.add('no-grayscale');
+                        continue;
+                    }
+                };
+
+                boxSupport.style.display = 'block';
+            };
+
+            acessoWebFrame.onSuccessCaptureJS = onSuccessCapture;
+            acessoWebFrame.onFailedCaptureJS = onFailedCapture;
+            acessoWebFrame.onBrowserNotSupportJS = onBrowserNotSupport;
+
+            setTypeCamera(_type);
         });
     </script>
 </body>
