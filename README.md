@@ -619,7 +619,9 @@ O arquivo ``pop-ups.css`` possui estilos dos pop-ups de Carregando, Orientação
    color: #fff !important;
 }
 ```
- 
+
+**Agora também é possível realizar vários tipos de captura sem precisar ir para outra página, basta após o callback chamar novamente algum dos métodos de invoke novamente**
+
 ## DEMO
 
 Câmera normal - * [Clique aqui para abrir a demonstração](https://biodevelopment.acesso.io/Crediario/mobbioweb/?type=1)
