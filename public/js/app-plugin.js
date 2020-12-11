@@ -596,7 +596,7 @@ class AcessoWebFrame {
     calcBtnCapturePos = async() => {
         if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_NORMAL) {
             // diferença entre o video e a area visivel (na web fica com a faixa preta caso ultrapasse a area do video)
-
+            this.buttonCapture.style.top = '';
             this.buttonCapture.style.bottom = (((this.cameraVideo.offsetHeight - this.mHeight) / 2) / 2 / 2) + 'px';
 
             this.buttonCapture.style.display = 'inline-block';
@@ -610,6 +610,7 @@ class AcessoWebFrame {
             this.TYPE_PROCESS_DOCUMENT === this.TYPE_DOCUMENT.NEW_RG_FRONT ||
             this.TYPE_PROCESS_DOCUMENT === this.TYPE_DOCUMENT.NEW_RG_BACK ||
             this.TYPE_PROCESS_DOCUMENT === this.TYPE_DOCUMENT.OTHERS) {
+            this.buttonCapture.style.bottom = '';
             this.buttonCapture.style.top = (this.bottomSilhouetteDocument + 10) + 'px';
             this.buttonCapture.style.display = 'inline-block';
             this.createBoxDocumentInfo();
@@ -1804,6 +1805,10 @@ class AcessoWebFrame {
 
         if (this.boxCamera.querySelector('#svgMask')) {
             this.boxCamera.querySelector('#svgMask').remove();
+        }
+
+        if (this.boxCamera.querySelector('#box--document-info')) {
+            this.boxCamera.querySelector('#box--document-info').remove();
         }
     };
 
