@@ -1271,7 +1271,7 @@ class AcessoWebFrame {
             factorHeight = this.videoHeight * 0.75;
         } else {
             factorWidth = (this.videoWidth / this.resolutionWidth) * ((this.videoWidth * 0.70) > 400 ? 400 : this.videoWidth * 0.70);
-            factorHeight = (this.videoHeight / this.resolutionHeight) * ((this.videoHeight * 0.70) > 500 ? 500 : this.videoHeight * 0.70);
+            factorHeight = this.videoHeight * 0.70;
         }
 
         if (this.acessoWebFrameSupport._isMobile) {
