@@ -1,4 +1,5 @@
-﻿var errorFragmentShader = false;
+﻿//Version 1.0.5
+var errorFragmentShader = false;
 
 class AcessoWebFrameSupport {
 
