@@ -444,7 +444,7 @@
     <script>
         var acessoWebFrame;
 
-        const getUrlVars = () => {
+        function getUrlVars() {
             let vars = [],
                 hash;
             let hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
@@ -456,32 +456,32 @@
             return vars;
         };
 
-        const showCompletedAnimation = () => {
+        function showCompletedAnimation() {
             document.getElementById('box--completed').style.display = 'inline-block';
         };
 
-        const hideCompletedAnimation = () => {
+        function hideCompletedAnimation() {
             document.getElementById('box--completed').style.display = 'none';
         };
 
-        const showLoadingModels = () => {
+        function showLoadingModels() {
             document.getElementById('box--loading-models').style.display = 'inline-block';
         };
 
-        const hideLoadingModels = () => {
+        function hideLoadingModels() {
             document.getElementById('box--loading-models').style.display = 'none';
         };
 
-        const showError = (message = "Ops... Algo inesperado aconteceu!") => {
+        function showError (message = "Ops... Algo inesperado aconteceu!") {
             document.getElementById('error-message').innerHTML = message;
             document.getElementById('box--error').style.display = 'inline-block';
         };
 
-        const hideError = () => {
+        function hideError() {
             document.getElementById('box--error').style.display = 'none';
         };
 
-        const setTypeCamera = (_type) => {
+        function setTypeCamera(_type) {
 
             switch (_type) {
                 case 1:
@@ -490,11 +490,11 @@
                 case 2:
                     showLoadingModels();
                     acessoWebFrame.acessoWebFrameModel.loadModelsCameraInteligence()
-                        .then(() => {
+                        .then(function() {
                             hideLoadingModels();
                             acessoWebFrame.initCameraInteligence('#2980ff', '#ed2121', '#fff');
                         })
-                        .catch((e) => {
+                        .catch(function(e) {
                             showError(e);
                             console.log(e);
                         });
