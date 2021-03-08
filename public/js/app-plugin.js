@@ -1,8 +1,31 @@
-﻿var errorFragmentShader = false;
+//Version 1.0.5
+var errorFragmentShader = false;
 
 class AcessoWebFrameSupport {
+    constructor() {
+        this.isOpera =
+            (!!window.opr && !!opr.addons) ||
+            !!window.opera ||
+            navigator.userAgent.indexOf(' OPR/') >= 0;
 
-    isMobile = () => {
+        // Firefox 1.0+
+        this.isFirefox = typeof InstallTrigger !== 'undefined';
+
+        // Safari 3.0+ "[object HTMLElementConstructor]"
+        this.isSafari =
+            /constructor/i.test(window.HTMLElement) ||
+            (function (p) {
+                return p !== undefined && p.toString() === '[object SafariRemoteNotification]';
+            })(!window['safari'] ||
+                (typeof safari !== 'undefined' && safari.pushNotification)
+            );
+
+        // Chrome 1 - 79
+        this.isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+
+    }
+
+    isMobile() {
         return navigator.userAgent.match(/Android/i) ||
             navigator.userAgent.match(/webOS/i) ||
             navigator.userAgent.match(/iPhone/i) ||
@@ -14,31 +37,30 @@ class AcessoWebFrameSupport {
             false;
     }
 
-    isIOS = () => {
+    isIOS() {
         return navigator.userAgent.match(/webOS/i) ||
             navigator.userAgent.match(/iPhone/i) ||
             navigator.userAgent.match(/iPad/i) ||
+            navigator.userAgent.match(/Mac OS/i) ||
             navigator.userAgent.match(/iPod/i) ?
             true :
             false;
     };
 
-    isAndroid = () => {
+    isAndroid() {
         return navigator.userAgent.match(/Android/i) ?
             true :
             false;
     };
 
-    _isMobile = this.isMobile();
-
-    verifyBrowserSupport = () => {
+    verifyBrowserSupport() {
         let _isChrome = platform.description.toLowerCase().indexOf('chrome') > -1;
         let _isFirefox = platform.description.toLowerCase().indexOf('firefox') > -1;
         let _isSafari = platform.description.toLowerCase().indexOf('safari') > -1;
         let _isEdge = platform.description.toLowerCase().indexOf('edge') > -1;
         let _isOpera = platform.description.toLowerCase().indexOf('opera') > -1;
 
-        if (this._isMobile) {
+        if (this.isMobile()) {
             if (this.isAndroid()) {
                 if (_isChrome || _isFirefox || _isEdge || _isFirefox) {
                     return true;
@@ -69,31 +91,8 @@ class AcessoWebFrameSupport {
         }
     };
 
-    isSupportBrowser = this.verifyBrowserSupport();
-
-    // Opera 8.0+
-    isOpera =
-        (!!window.opr && !!opr.addons) ||
-        !!window.opera ||
-        navigator.userAgent.indexOf(' OPR/') >= 0;
-
-    // Firefox 1.0+
-    isFirefox = typeof InstallTrigger !== 'undefined';
-
-    // Safari 3.0+ "[object HTMLElementConstructor]"
-    isSafari =
-        /constructor/i.test(window.HTMLElement) ||
-        (function(p) {
-            return p !== undefined && p.toString() === '[object SafariRemoteNotification]';
-        })(!window['safari'] ||
-            (typeof safari !== 'undefined' && safari.pushNotification)
-        );
-
-    // Chrome 1 - 79
-    isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
-
-    browserNotSupport = () => {
-        if (this._isMobile) {
+    browserNotSupport() {
+        if (this.isMobile()) {
             if (this.isAndroid()) {
                 return {
                     message: 'Navegadores permitidos:',
@@ -128,34 +127,34 @@ class AcessoWebFramePopup {
         this.boxOrientation;
     }
 
-    showBoxLoading = () => {
+    showBoxLoading() {
         if (this.boxLoading) {
             this.boxLoading.style.backgroundColor = "white";
             this.boxLoading.style.display = "block";
         }
     };
 
-    hideBoxLoading = () => {
+    hideBoxLoading() {
         if (this.boxLoading) {
             this.boxLoading.style.display = "none";
         }
     };
 
-    showBoxLockOrientation = () => {
+    showBoxLockOrientation() {
         if (this.boxOrientation) {
             this.boxOrientation.style.visibility = 'visible';
             this.boxOrientation.style.opacity = 1;
         }
     };
 
-    hideBoxLockOrientation = () => {
+    hideBoxLockOrientation() {
         if (this.boxOrientation) {
             this.boxOrientation.style.visibility = 'hidden';
             this.boxOrientation.style.opacity = 0;
         }
     };
 
-    showMessage = (message) => {
+    showMessage(message) {
         if (this.Message && this.Message.innerHTML !== message) {
             this.Message.innerHTML = message;
             this.Message.style.visibility = 'visible';
@@ -163,7 +162,7 @@ class AcessoWebFramePopup {
         }
     };
 
-    hideMessage = () => {
+    hideMessage() {
         if (this.Message) {
             this.Message.innerHTML = '';
             this.Message.style.visibility = 'hidden';
@@ -177,14 +176,16 @@ class AcessoWebFrameModel {
         this.isfaceApiLoaded = false;
     }
 
-    loadModelsCameraInteligence = async() => {
+    async loadModelsCameraInteligence() {
+        let path = this.getHostUrlBase('models');
         if (!this.isfaceApiLoaded) {
             return await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(this.getHostUrlBase('models')),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(this.getHostUrlBase('models'))
-                ])
+                faceapi.nets.tinyFaceDetector.loadFromUri(path),
+                faceapi.nets.faceLandmark68Net.loadFromUri(path)
+            ])
                 .then(() => {
                     this.isfaceApiLoaded = true;
+                    return Promise.resolve();
                 })
                 .catch(() => {
                     return Promise.reject(new Error('Não foi possível baixar os modelos, pode ser erro de diretório ou arquivos do face-api não carregados anteriormente.'));
@@ -194,19 +195,19 @@ class AcessoWebFrameModel {
         }
     };
 
-    getFaceDetectorOptions = () => {
+    getFaceDetectorOptions() {
         return new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
     };
 
-    isFaceDetectionModelLoaded = () => {
+    isFaceDetectionModelLoaded() {
         return !!faceapi.nets.tinyFaceDetector.params;
     };
 
-    isFaceLandmark68NetLoaded = () => {
+    isFaceLandmark68NetLoaded() {
         return !!faceapi.nets.faceLandmark68Net.params;
     };
 
-    getHostUrlBase = (path) => {
+    getHostUrlBase(path) {
         return window.location.protocol + '//' + window.location.host + "/" + path;
     }
 }
@@ -219,8 +220,8 @@ class AcessoWebFrame {
 
         this.SILHOUETTE_CONFIGURATIONS = {
             CLOSE: {
-                WIDTH: this.acessoWebFrameSupport._isMobile ? 285 : 307.8,
-                HEIGHT: this.acessoWebFrameSupport._isMobile ? 456 : 492.48
+                WIDTH: this.acessoWebFrameSupport.isMobile() ? 285 : 307.8,
+                HEIGHT: this.acessoWebFrameSupport.isMobile() ? 456 : 492.48
             }
         };
 
@@ -342,6 +343,27 @@ class AcessoWebFrame {
             differenceNoseYThreshold: null
         };
 
+
+        this.Orientation = {
+            PORTRAIT: 1,
+            LANDSCAPE: 2
+        };
+
+        this.defaultConstraints = {
+            video: {
+                width: {
+                    min: 640,
+                    ideal: 1280,
+                    max: 1920,
+                },
+                height: {
+                    min: 480,
+                    ideal: 720,
+                    max: 1080
+                },
+            },
+        };
+
         this.cameraVideo;
         this.cameraCanvas;
         this.cameraOverlay;
@@ -351,39 +373,23 @@ class AcessoWebFrame {
         this.FocusSilhouette;
     }
 
-    Orientation = {
-        PORTRAIT: 1,
-        LANDSCAPE: 2
-    };
-
-    defaultConstraints = {
-        video: {
-            width: {
-                min: 640,
-                ideal: 1280,
-                max: 1920,
-            },
-            height: {
-                min: 480,
-                ideal: 720,
-                max: 1080
-            },
-        },
-    };
-
-    getAndroidVersion = (ua) => {
+    getAndroidVersion(ua) {
         ua = (ua || navigator.userAgent).toLowerCase();
         let match = ua.match(/android\s([0-9\.]*)/i);
         return match ? match[1] : undefined;
     };
 
-    addClickEvent = () => {
+    addClickEvent() {
         if (this.buttonCapture) {
-            this.buttonCapture.onclick = this.takePicture;
+            let that = this;
+
+            this.buttonCapture.addEventListener("click", function(){
+                that.takePicture();
+            });
         }
     };
 
-    gotStream = (mediaStream) => {
+    gotStream(mediaStream) {
         if (mediaStream) {
             this.stream = window.stream = mediaStream;
             this.cameraVideo.srcObject = mediaStream;
@@ -391,7 +397,7 @@ class AcessoWebFrame {
         }
     };
 
-    gotDevices = (deviceInfos) => {
+    gotDevices(deviceInfos) {
         for (let i = 0; i !== deviceInfos.length; ++i) {
             const deviceInfo = deviceInfos[i];
 
@@ -404,7 +410,7 @@ class AcessoWebFrame {
         }
     };
 
-    setTrack = (mediaStream) => {
+    setTrack(mediaStream) {
         if (mediaStream) {
             this.track = mediaStream.getVideoTracks()[0];
             if (this.track.getSettings()) {
@@ -418,7 +424,7 @@ class AcessoWebFrame {
         }
     };
 
-    setConstraint = (newConstraints) => {
+    setConstraint(newConstraints) {
         if (newConstraints) {
             let _constraints = {};
             // copia os dados básicos (video.user e audio)
@@ -431,7 +437,7 @@ class AcessoWebFrame {
         }
     };
 
-    setAspectRatio = (constraints) => {
+    setAspectRatio(constraints) {
         let width = 1280;
         let height = 720;
 
@@ -467,7 +473,7 @@ class AcessoWebFrame {
         }
     };
 
-    handleError = (error) => {
+    handleError(error) {
         if (error) {
             this.onFailedCaptureJS(`navigator.MediaDevices.getUserMedia error: ${error.message}, ${error.name}`);
         } else {
@@ -475,9 +481,9 @@ class AcessoWebFrame {
         }
     };
 
-    setMobileStyle = () => {
+    setMobileStyle() {
         if (this.cameraVideo) {
-            if (this.acessoWebFrameSupport._isMobile) {
+            if (this.acessoWebFrameSupport.isMobile()) {
                 this.cameraVideo.style['object-fit'] = 'cover';
             } else {
                 this.cameraVideo.style['object-fit'] = '';
@@ -485,9 +491,9 @@ class AcessoWebFrame {
         }
     };
 
-    startCamera = () => {
+    startCamera() {
         if (window.stream) {
-            window.stream.getTracks().forEach((track) => {
+            window.stream.getTracks().forEach(function(track) {
                 track.stop();
             });
         }
@@ -525,7 +531,7 @@ class AcessoWebFrame {
             // exceto Safari
             if (!this.acessoWebFrameSupport.isSafari) {
                 if (
-                    this.acessoWebFrameSupport.isFirefox && this.acessoWebFrameSupport._isMobile &&
+                    this.acessoWebFrameSupport.isFirefox && this.acessoWebFrameSupport.isMobile() &&
                     ((this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_NORMAL && this.FACE_MODE === this.FACE_MODE_TYPE.FRONT) ||
                         this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_INTELIGENCE)
                 ) {
@@ -537,31 +543,35 @@ class AcessoWebFrame {
             this.setConstraint(this.constraints);
         }
 
-        navigator.mediaDevices
-            .getUserMedia(this.getConstraints())
-            .then(this.gotStream)
-            .then(this.setMobileStyle())
-            .then(this.setTypeSilhouette)
-            .then(this.calcBtnCapturePos)
-            .then(this.calcMarginMask)
-            .then(() => {
-                if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_INTELIGENCE) {
-                    this.verifyFaceApiIsRunning();
-                    this.setConfiguration();
-                } else {
-                    if (this.isLoading) {
-                        this.acessoWebFramePopup.hideBoxLoading();
-                        this.acessoWebFramePopup.hideMessage();
-                        this.isLoading = false;
-                    }
+        let that = this;
+
+
+        navigator.mediaDevices.getUserMedia(this.getConstraints())
+        .then(function(stream){
+            that.gotStream(stream)
+            that.setMobileStyle()
+            that.setTypeSilhouette()
+            that.calcBtnCapturePos()
+            that.calcMarginMask()
+
+            if (that.TYPE_PROCESS === that.TYPE_CAMERA.CAMERA_INTELIGENCE) {
+                that.verifyFaceApiIsRunning();
+                that.setConfiguration();
+            } else {
+                if (that.isLoading) {
+                    that.acessoWebFramePopup.hideBoxLoading();
+                    that.acessoWebFramePopup.hideMessage();
+                    that.isLoading = false;
                 }
-            })
-            .catch((error) => {
-                this.handleError(error);
-            });
+            }
+        })
+        .catch(function(error) {
+            console.log(error)
+            that.handleError(error);
+        });
     };
 
-    stopStuffsAfterTake = () => {
+    stopStuffsAfterTake() {
         // stop tracking
         this.track.stop();
 
@@ -576,7 +586,7 @@ class AcessoWebFrame {
         this.cameraOpen = false;
     };
 
-    setVisibilityOpenCamera = () => {
+    setVisibilityOpenCamera() {
         // show mask
         this.svgMask.style.display = 'unset';
 
@@ -587,13 +597,13 @@ class AcessoWebFrame {
         this.acessoWebFramePopup.hideBoxLoading();
     };
 
-    setVisibilityAfterTake = () => {
+    setVisibilityAfterTake() {
         this.svgMask.style.display = 'none';
         // hide video
         this.cameraVideo.style.display = 'none';
     };
 
-    calcBtnCapturePos = async() => {
+    calcBtnCapturePos() {
         if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_NORMAL) {
             // diferença entre o video e a area visivel (na web fica com a faixa preta caso ultrapasse a area do video)
             this.buttonCapture.style.top = '';
@@ -619,7 +629,7 @@ class AcessoWebFrame {
         }
     };
 
-    calcMarginMask = async() => {
+    calcMarginMask() {
         // diferença entre o video e a area visivel (na web fica com a faixa preta caso ultrapasse a area do video)
         let diffH = this.boxCamera.offsetHeight - this.videoHeight;
         let diffW = this.boxCamera.offsetWidth - this.videoWidth;
@@ -628,20 +638,20 @@ class AcessoWebFrame {
         this.cameraOverlay.style.padding = `${paddingH}px ${paddingW}px`;
     };
 
-    toggleFullScreen = () => {
+    toggleFullScreen(){
         if (document.fullscreenElement && document.exitFullscreen) {
             document.exitFullscreen();
         }
     };
 
-    orientationChange = () => {
+    orientationChange() {
         this.setOrientation();
         window.scrollTo(0, document.body.scrollHeight);
         this.updateView();
         this.toggleFullScreen();
     };
 
-    updateView = () => {
+    updateView() {
         if (this.cameraOpen) {
             if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_NORMAL || this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_INTELIGENCE) {
                 this.loadMask(this.COLOR_SILHOUETTE.SECONDARY);
@@ -657,20 +667,21 @@ class AcessoWebFrame {
         }
     };
 
-    addEventResize = async() => {
-        window.addEventListener('resize', (e) => {
-            this.setOrientation();
-            this.updateView();
-            this.toggleFullScreen();
+    async addEventResize() {
+        let that = this;
+        window.addEventListener('resize', function(e) {
+            that.setOrientation();
+            that.updateView();
+            that.toggleFullScreen();
         });
     };
 
-    updateTimeStats = (timeInMs) => {
+    updateTimeStats(timeInMs) {
         this.forwardTimes = [timeInMs].concat(this.forwardTimes).slice(0, 30);
-        this.avgTimeInMs = this.forwardTimes.reduce((total, t) => total + t) / this.forwardTimes.length;
+        this.avgTimeInMs = this.forwardTimes.reduce(function(total, t) { total + t }) / this.forwardTimes.length;
     };
 
-    verifyFaceApiIsRunning = () => {
+    verifyFaceApiIsRunning() {
         if (this.isFaceApiIsRunning) {
             return;
         } else if (errorFragmentShader || this.counterIsRunning >= 8) {
@@ -690,16 +701,18 @@ class AcessoWebFrame {
         }
     };
 
-    startTimerSession = () => {
+    startTimerSession() {
+        let that = this;
         if (this.isTimerSessionContinueRunning) {
-            this.timerSession = setTimeout(() => {
-                this.totalSeconds++;
-                this.startTimerSession();
+            this.timerSession = setTimeout(function() {
+                that.totalSeconds++;
+                that.startTimerSession();
             }, 1000);
         }
     };
 
-    onPlay = async() => {
+    async onPlay() {
+        let that = this;
         try {
             if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_NORMAL ||
                 this.TYPE_PROCESS_DOCUMENT === this.TYPE_DOCUMENT.CNH ||
@@ -717,7 +730,7 @@ class AcessoWebFrame {
                     this.cameraVideo.ended ||
                     this.isCaptureReady
                 ) {
-                    return setTimeout(() => { this.onPlay(); });
+                    return setTimeout(function() { that.onPlay(); });
                 }
 
                 if (!this.isTimerSessionContinueRunning) {
@@ -732,10 +745,10 @@ class AcessoWebFrame {
                     this.cameraVideo.paused ||
                     this.cameraVideo.ended ||
                     !this.acessoWebFrameModel.isFaceDetectionModelLoaded() ||
-                    (this.acessoWebFrameSupport._isMobile && this.videoOrientation === this.Orientation.LANDSCAPE) ||
+                    (this.acessoWebFrameSupport.isMobile() && this.videoOrientation === this.Orientation.LANDSCAPE) ||
                     this.isCaptureReady
                 ) {
-                    return setTimeout(() => { this.onPlay(); });
+                    return setTimeout(function() { that.onPlay(); });
                 }
 
                 const options = this.acessoWebFrameModel.getFaceDetectorOptions();
@@ -755,7 +768,7 @@ class AcessoWebFrame {
                     this.isLoading = false;
                 } else {
                     if (result) {
-                        if (this.isCaptureReady) return setTimeout(() => { this.onPlay(); });
+                        if (this.isCaptureReady) return setTimeout(function() { that.onPlay(); });
 
                         let dims = faceapi.matchDimensions(this.cameraOverlay, this.cameraVideo, true);
                         dims.height = this.cameraVideo.offsetHeight;
@@ -763,13 +776,13 @@ class AcessoWebFrame {
                         const resizedResult = faceapi.resizeResults(result, dims);
 
                         if (this.isCentralizedFace(
-                                resizedResult.landmarks.positions[0]._x,
-                                resizedResult.landmarks.positions[0]._y,
-                                resizedResult.landmarks.positions[16]._x,
-                                resizedResult.landmarks.positions[16]._y,
-                                resizedResult.landmarks.positions[27]._x,
-                                resizedResult.landmarks.positions[27]._y
-                            )) {
+                            resizedResult.landmarks.positions[0]._x,
+                            resizedResult.landmarks.positions[0]._y,
+                            resizedResult.landmarks.positions[16]._x,
+                            resizedResult.landmarks.positions[16]._y,
+                            resizedResult.landmarks.positions[27]._x,
+                            resizedResult.landmarks.positions[27]._y
+                        )) {
 
                             if (!this.isTimerTaking) {
                                 this.initTimerTake(1700);
@@ -782,14 +795,14 @@ class AcessoWebFrame {
                 }
             }
 
-            return setTimeout(() => { this.onPlay(); });
+            return setTimeout(function() { that.onPlay(); });
 
         } catch (error) {
             console.log(error);
         }
     };
 
-    changeColorMask = (color) => {
+    changeColorMask(color) {
         if (!this.FocusSilhouette) {
             this.FocusSilhouette = this.boxCamera.querySelector('#focus-silhouette');
         }
@@ -798,25 +811,33 @@ class AcessoWebFrame {
         }
     };
 
-    setLoading = () => {
+    setLoading() {
         this.acessoWebFramePopup.showBoxLoading();
         this.buttonCapture.style.display = 'none';
     };
 
-    initTimerTake = (milliseconds) => {
+    initTimerTake(milliseconds) {
+        let that = this;
         this.isTimerTaking = true;
-        this.timerTake = setTimeout(() => {
-            if (this.isCentralized) {
-                clearTimeout(this.timerTake);
-                this.takePicture();
+        this.timerTake = setTimeout(function() {
+            if (that.isCentralized) {
+                clearTimeout(that.timerTake);
+                that.takePicture();
             } else {
-                this.isTimerTaking = false;
-                clearTimeout(this.timerTake);
+                that.isTimerTaking = false;
+                clearTimeout(that.timerTake);
             }
         }, milliseconds);
     };
 
-    takePicture = () => {
+    addparametersToBase64(base64) {
+        let split = base64.split(`:`)
+        let type_plataform = this.acessoWebFrameSupport.isMobile() ? "mobile" : "desktop";
+        let type_device = this.acessoWebFrameSupport.isIOS() ? "ios" : this.acessoWebFrameSupport.isAndroid() ? "android" : "windows";
+        return `${split[0]}:js-${type_plataform}-${type_device}|1.0.6/${split[1]}`;
+    }
+
+    takePicture() {
         if (this.cameraOpen) {
             if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_NORMAL ||
                 this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_INTELIGENCE ||
@@ -833,7 +854,7 @@ class AcessoWebFrame {
                 this.setLoading();
 
                 this.onSuccessCaptureJS({
-                    base64: base64,
+                    base64: this.addparametersToBase64(base64),
                     Log: this.getLog()
                 });
 
@@ -851,7 +872,7 @@ class AcessoWebFrame {
                     this.setLabelDocumentInfo();
                     this.acessoWebFramePopup.showBoxLoading();
                     this.loadMaskDocument(this.COLOR_SILHOUETTE.SECONDARY);
-                    setTimeout(() => {
+                    setTimeout(function() {
                         this.acessoWebFramePopup.hideBoxLoading();
                     }, 1000);
                 } else if (this.FLOW === this.FLOW_TYPE.BACK) {
@@ -860,8 +881,8 @@ class AcessoWebFrame {
                     this.setLoading();
 
                     this.onSuccessCaptureJS({
-                        base64: this.base64Front,
-                        base64Back: base64,
+                        base64: this.addparametersToBase64(this.base64Front),
+                        base64Back: this.addparametersToBase64(base64),
                         Log: this.getLog()
                     });
 
@@ -876,7 +897,7 @@ class AcessoWebFrame {
         }
     };
 
-    getLog = () => {
+    getLog() {
         if (this.TYPE_PROCESS !== null) {
             return {
                 TYPE_PROCESS_INITIAL: this.TYPE_PROCESS_INITIAL,
@@ -920,31 +941,50 @@ class AcessoWebFrame {
         }
     };
 
-    getBase64Canvas = () => {
+    getBase64Canvas() {
         this.cameraCanvas.width = this.cameraVideo.videoWidth;
         this.cameraCanvas.height = this.cameraVideo.videoHeight;
         this.cameraCanvas.getContext('2d').drawImage(this.cameraVideo, 0, 0);
         return this.cameraCanvas.toDataURL('image/jpeg');
     };
 
-    isCentralizedFace = (leftX, leftY, rightX, rightY, noseX, noseY) => {
+    isCentralizedFace(leftX, leftY, rightX, rightY, noseX, noseY) {
         this.centralized.silhoutteWidth = this.mWidth;
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             this.centralized.topSilhouetteThresholdVertical = 8 / 100 * this.cameraVideo.offsetHeight;
             this.centralized.bottomSilhouetteThresholdVertical = 3.47 / 100 * this.cameraVideo.offsetHeight;
-            this.centralized.inSilhouetteThresholdHorizontal = 12 / 100 * this.cameraVideo.offsetWidth;
+            this.centralized.inSilhouetteThresholdHorizontal = 10 / 100 * this.cameraVideo.offsetWidth;
             this.centralized.overSilhouetteThresholdHorizontal = 4 / 100 * this.cameraVideo.offsetWidth;
             this.centralized.faceTurnedSilhouetteThresholdHorizontal = 15 / 100 * this.cameraVideo.offsetWidth;
             this.centralized.differenceNoseYThreshold = 7 / 100 * this.cameraVideo.offsetHeight;
-        } else {
-            this.centralized.topSilhouetteThresholdVertical = 4 / 100 * this.cameraVideo.offsetHeight;
-            this.centralized.bottomSilhouetteThresholdVertical = 3 / 100 * this.cameraVideo.offsetHeight;
-            this.centralized.inSilhouetteThresholdHorizontal = 1 / 100 * this.cameraVideo.offsetWidth;
-            this.centralized.overSilhouetteThresholdHorizontal = 4 / 100 * this.cameraVideo.offsetWidth;
-            this.centralized.faceTurnedSilhouetteThresholdHorizontal = 9 / 100 * this.cameraVideo.offsetWidth;
-            this.centralized.differenceNoseYThreshold = 7 / 100 * this.cameraVideo.offsetHeight;
-        }
+          }
+          else {
+            if (this.cameraVideo.offsetWidth > 1500) {
+              this.centralized.topSilhouetteThresholdVertical = 4 / 100 * this.cameraVideo.offsetHeight;
+              this.centralized.bottomSilhouetteThresholdVertical = 3 / 100 * this.cameraVideo.offsetHeight;
+              this.centralized.inSilhouetteThresholdHorizontal = 1 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.overSilhouetteThresholdHorizontal = 4 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.faceTurnedSilhouetteThresholdHorizontal = 9 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.differenceNoseYThreshold = 7 / 100 * this.cameraVideo.offsetHeight;
+            }
+            else if (this.cameraVideo.offsetWidth < 1499 && this.cameraVideo.offsetWidth > 600) {
+              this.centralized.topSilhouetteThresholdVertical = 8 / 100 * this.cameraVideo.offsetHeight;
+              this.centralized.bottomSilhouetteThresholdVertical = 6 / 100 * this.cameraVideo.offsetHeight;
+              this.centralized.inSilhouetteThresholdHorizontal = 3 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.overSilhouetteThresholdHorizontal = 8 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.faceTurnedSilhouetteThresholdHorizontal = 18 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.differenceNoseYThreshold = 14 / 100 * this.cameraVideo.offsetHeight;
+            }
+            else {
+              this.centralized.topSilhouetteThresholdVertical = 10 / 100 * this.cameraVideo.offsetHeight;
+              this.centralized.bottomSilhouetteThresholdVertical = 8 / 100 * this.cameraVideo.offsetHeight;
+              this.centralized.inSilhouetteThresholdHorizontal = 5 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.overSilhouetteThresholdHorizontal = 10 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.faceTurnedSilhouetteThresholdHorizontal = 20 / 100 * this.cameraVideo.offsetWidth;
+              this.centralized.differenceNoseYThreshold = 16 / 100 * this.cameraVideo.offsetHeight;
+            }
+          }
 
         this.centralized.differenceLeftY = leftY - noseY;
         this.centralized.differenceRightY = rightY - noseY;
@@ -1010,14 +1050,15 @@ class AcessoWebFrame {
         }
     };
 
-    addEventPlay = () => {
-        this.cameraVideo.addEventListener('play', () => {
-            this.cameraOpen = true;
-            this.onPlay();
+    addEventPlay() {
+        let that = this;
+        this.cameraVideo.addEventListener('play', function() {
+            that.cameraOpen = true;
+            that.onPlay();
         });
     };
 
-    loadMask = async(color) => {
+    loadMask(color) {
         let mBoxWidth = this.cameraVideo.offsetWidth;
         let mBoxHeight = this.cameraVideo.offsetHeight;
         let borderColor = color;
@@ -1032,7 +1073,7 @@ class AcessoWebFrame {
         }
 
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             this.videoWidth = this.cameraVideo.offsetWidth;
             this.videoHeight = this.cameraVideo.offsetHeight;
         } else {
@@ -1048,7 +1089,7 @@ class AcessoWebFrame {
             }
         }
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             if (this.resolutionHeight > this.resolutionWidth) {
                 let vResolutionHeight = this.resolutionHeight;
                 let vResolutionWidth = this.resolutionWidth;
@@ -1060,7 +1101,7 @@ class AcessoWebFrame {
         let factorWidth = (this.videoWidth / this.resolutionWidth) * this.SILHOUETTE_CONFIGURATIONS.CLOSE.WIDTH;
         let factorHeight = (this.videoHeight / this.resolutionHeight) * this.SILHOUETTE_CONFIGURATIONS.CLOSE.HEIGHT;
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
 
             if (this.videoOrientation === this.Orientation.PORTRAIT) {
                 this.mWidth = factorHeight / (this.SILHOUETTE_CONFIGURATIONS.CLOSE.HEIGHT / this.SILHOUETTE_CONFIGURATIONS.CLOSE.WIDTH);
@@ -1199,7 +1240,7 @@ class AcessoWebFrame {
         }
     };
 
-    setTypeSilhouette = () => {
+    setTypeSilhouette() {
         if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_NORMAL || this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_INTELIGENCE) {
             this.loadMask(this.COLOR_SILHOUETTE.SECONDARY);
         } else if (
@@ -1216,7 +1257,7 @@ class AcessoWebFrame {
         }
     };
 
-    loadMaskDocument = async(color) => {
+    async loadMaskDocument(color) {
         // parameters -----------------------------------
         let mBoxWidth = this.cameraVideo.offsetWidth;
         let mBoxHeight = this.cameraVideo.offsetHeight;
@@ -1232,7 +1273,7 @@ class AcessoWebFrame {
         }
 
         // video proportion
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             this.videoWidth = this.cameraVideo.offsetWidth;
             this.videoHeight = this.cameraVideo.offsetHeight;
         } else {
@@ -1250,7 +1291,7 @@ class AcessoWebFrame {
             }
         }
 
-        if (this.acessoWebFrameSupport._isMobile && this.acessoWebFrameSupport.isIOS()) {
+        if (this.acessoWebFrameSupport.isMobile() && this.acessoWebFrameSupport.isIOS()) {
             if (this.resolutionHeight > this.resolutionWidth) {
                 let vResolutionHeight = this.resolutionHeight;
                 let vResolutionWidth = this.resolutionWidth;
@@ -1265,15 +1306,15 @@ class AcessoWebFrame {
         let factorWidth;
         let factorHeight;
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             factorWidth = this.videoWidth * 0.95;
             factorHeight = this.videoHeight * 0.75;
         } else {
             factorWidth = (this.videoWidth / this.resolutionWidth) * ((this.videoWidth * 0.70) > 400 ? 400 : this.videoWidth * 0.70);
-            factorHeight = (this.videoHeight / this.resolutionHeight) * ((this.videoHeight * 0.70) > 500 ? 500 : this.videoHeight * 0.70);
+            factorHeight = this.videoHeight * 0.70;
         }
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
 
             if (this.videoOrientation === this.Orientation.PORTRAIT) {
                 this.mWidth = factorHeight / ((this.videoHeight * 0.75) / (this.videoWidth * 0.95));
@@ -1288,7 +1329,7 @@ class AcessoWebFrame {
             this.mHeight = factorHeight;
         }
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             // no modo portrait levamos em conta a altura e calculamos a largura da máscara
             // quando estamos simulando um dispositivo móvel no navegador a abertura da câmera sempre é landscape
             // porém os lados são cortados no vídeo para dar a impressão de portrait
@@ -1348,7 +1389,7 @@ class AcessoWebFrame {
         let point8X = mBoxXCenter + halfMWidth;
         let point8Y = mBoxYCenter - halfHeight;
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             point6Y = point6Y / 2;
             point8Y = point8Y / 2;
             point2Y = point2Y - point6Y;
@@ -1446,7 +1487,7 @@ class AcessoWebFrame {
                 this.pathLine = document.createElementNS(xmlns, 'path');
             }
             this.pathLine.setAttributeNS(null, 'id', `line`);
-            this.pathLine.setAttributeNS(null, 'd', `M ${point4X} ${this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter} l ${point1X - point4X} 0`);
+            this.pathLine.setAttributeNS(null, 'd', `M ${point4X} ${this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter} l ${point1X - point4X} 0`);
             this.pathLine.setAttributeNS(null, 'fill', 'none');
             this.pathLine.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.pathLine.setAttributeNS(null, 'stroke-width', '3');
@@ -1457,7 +1498,7 @@ class AcessoWebFrame {
             this.react1.setAttributeNS(null, 'id', `rect-top-cnh`);
             this.react1.setAttributeNS(null, 'class', `cls-focus`);
             this.react1.setAttributeNS(null, 'x', point4X + this.mWidth * 0.19);
-            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (halfHeight * 0.13 + halfHeight * 0.57));
+            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (halfHeight * 0.13 + halfHeight * 0.57));
             this.react1.setAttributeNS(null, 'width', this.mWidth * 0.30);
             this.react1.setAttributeNS(null, 'height', halfHeight * 0.57);
             this.react1.setAttributeNS(null, 'stroke-width', 3);
@@ -1470,7 +1511,7 @@ class AcessoWebFrame {
             this.react2.setAttributeNS(null, 'id', `rect-bottom-cnh`);
             this.react2.setAttributeNS(null, 'class', `cls-focus`);
             this.react2.setAttributeNS(null, 'x', point4X + (this.mWidth * 0.16));
-            this.react2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) + (halfHeight * 0.05));
+            this.react2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) + (halfHeight * 0.05));
             this.react2.setAttributeNS(null, 'width', this.mWidth * 0.77);
             this.react2.setAttributeNS(null, 'height', halfHeight * 0.4);
             this.react2.setAttributeNS(null, 'stroke-width', 3);
@@ -1484,7 +1525,7 @@ class AcessoWebFrame {
             this.svgText.setAttributeNS(null, 'id', `text1`);
             this.svgText.setAttributeNS(null, 'class', `cls-text`);
             this.svgText.setAttributeNS(null, 'x', point4X + this.mWidth * 0.19);
-            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (halfHeight * 0.13 + halfHeight * 0.57) - 10);
+            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (halfHeight * 0.13 + halfHeight * 0.57) - 10);
             this.svgText.setAttributeNS(null, 'fill', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.innerHTML = '';
@@ -1500,7 +1541,7 @@ class AcessoWebFrame {
             this.react1.setAttributeNS(null, 'id', `rect1`);
             this.react1.setAttributeNS(null, 'class', `cls-focus`);
             this.react1.setAttributeNS(null, 'x', point4X + ((this.mWidth - this.mWidth * 0.45) / 2));
-            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.40));
+            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.40));
             this.react1.setAttributeNS(null, 'width', this.mWidth * 0.45);
             this.react1.setAttributeNS(null, 'height', this.mHeight * 0.40);
             this.react1.setAttributeNS(null, 'stroke-width', 3);
@@ -1513,7 +1554,7 @@ class AcessoWebFrame {
             this.react2.setAttributeNS(null, 'id', `rect2`);
             this.react2.setAttributeNS(null, 'class', `cls-focus`);
             this.react2.setAttributeNS(null, 'x', point4X + ((this.mWidth - this.mWidth * 0.45) / 2));
-            this.react2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) + (this.mHeight * 0.05));
+            this.react2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) + (this.mHeight * 0.05));
             this.react2.setAttributeNS(null, 'width', this.mWidth * 0.45);
             this.react2.setAttributeNS(null, 'height', this.mHeight * 0.38);
             this.react2.setAttributeNS(null, 'stroke-width', 3);
@@ -1526,7 +1567,7 @@ class AcessoWebFrame {
             this.svgText.setAttributeNS(null, 'id', `text1`);
             this.svgText.setAttributeNS(null, 'class', `cls-text`);
             this.svgText.setAttributeNS(null, 'x', mBoxXCenter - 25);
-            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.42));
+            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.42));
             this.svgText.setAttributeNS(null, 'fill', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.innerHTML = '';
@@ -1542,7 +1583,7 @@ class AcessoWebFrame {
             this.react1.setAttributeNS(null, 'id', `rect1`);
             this.react1.setAttributeNS(null, 'class', `cls-focus`);
             this.react1.setAttributeNS(null, 'x', point4X + (this.mWidth - this.mWidth * 0.15));
-            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.28));
+            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.28));
             this.react1.setAttributeNS(null, 'width', this.mWidth * 0.0735);
             this.react1.setAttributeNS(null, 'height', this.mHeight * 0.198);
             this.react1.setAttributeNS(null, 'stroke-width', 3);
@@ -1555,7 +1596,7 @@ class AcessoWebFrame {
             this.react2.setAttributeNS(null, 'id', `rect2`);
             this.react2.setAttributeNS(null, 'class', `cls-focus`);
             this.react2.setAttributeNS(null, 'x', point4X + (this.mWidth - this.mWidth * 0.30));
-            this.react2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.28));
+            this.react2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.28));
             this.react2.setAttributeNS(null, 'width', this.mWidth * 0.0735);
             this.react2.setAttributeNS(null, 'height', this.mHeight * 0.49);
             this.react2.setAttributeNS(null, 'stroke-width', 3);
@@ -1568,7 +1609,7 @@ class AcessoWebFrame {
             this.svgText.setAttributeNS(null, 'id', `text1`);
             this.svgText.setAttributeNS(null, 'class', `cls-text`);
             this.svgText.setAttributeNS(null, 'x', point4X + (this.mWidth - (this.mWidth * 0.30 - (this.mWidth * 0.0735) / 2)));
-            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.45));
+            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.45));
             this.svgText.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'fill', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'style', 'writing-mode: tb;');
@@ -1586,7 +1627,7 @@ class AcessoWebFrame {
             this.react1.setAttributeNS(null, 'id', `rect1`);
             this.react1.setAttributeNS(null, 'class', `cls-focus`);
             this.react1.setAttributeNS(null, 'x', point4X + (this.mWidth - (this.mWidth * 0.58) - (this.mWidth * 0.09)));
-            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.40));
+            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.40));
             this.react1.setAttributeNS(null, 'width', this.mWidth * 0.58);
             this.react1.setAttributeNS(null, 'height', this.mHeight * 0.30);
             this.react1.setAttributeNS(null, 'stroke-width', 3);
@@ -1599,7 +1640,7 @@ class AcessoWebFrame {
             this.svgText.setAttributeNS(null, 'id', `text1`);
             this.svgText.setAttributeNS(null, 'class', `cls-text`);
             this.svgText.setAttributeNS(null, 'x', point4X + (this.mWidth - (this.mWidth * 0.58) - (this.mWidth * 0.09)));
-            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.42));
+            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.42));
             this.svgText.setAttributeNS(null, 'fill', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.innerHTML = '';
@@ -1615,7 +1656,7 @@ class AcessoWebFrame {
             this.react1.setAttributeNS(null, 'id', `rect1`);
             this.react1.setAttributeNS(null, 'class', `cls-focus`);
             this.react1.setAttributeNS(null, 'x', point4X + this.mWidth * 0.09);
-            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) + ((this.mHeight * 0.25) / 2));
+            this.react1.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) + ((this.mHeight * 0.25) / 2));
             this.react1.setAttributeNS(null, 'width', this.mWidth * 0.62);
             this.react1.setAttributeNS(null, 'height', this.mHeight * 0.30);
             this.react1.setAttributeNS(null, 'stroke-width', 3);
@@ -1628,7 +1669,7 @@ class AcessoWebFrame {
             this.svgText.setAttributeNS(null, 'id', `text1`);
             this.svgText.setAttributeNS(null, 'class', `cls-text`);
             this.svgText.setAttributeNS(null, 'x', point4X + this.mWidth * 0.09);
-            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) + ((this.mHeight * 0.25) / 2) - 10);
+            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) + ((this.mHeight * 0.25) / 2) - 10);
             this.svgText.setAttributeNS(null, 'fill', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.innerHTML = '';
@@ -1641,7 +1682,7 @@ class AcessoWebFrame {
             this.svgText.setAttributeNS(null, 'id', `text1`);
             this.svgText.setAttributeNS(null, 'class', `cls-text-medium`);
             this.svgText.setAttributeNS(null, 'x', point4X + (this.mWidth * 0.40));
-            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.45));
+            this.svgText.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.45));
             this.svgText.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'fill', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText.setAttributeNS(null, 'style', 'writing-mode: tb;');
@@ -1655,7 +1696,7 @@ class AcessoWebFrame {
             this.svgText2.setAttributeNS(null, 'id', `text2`);
             this.svgText2.setAttributeNS(null, 'class', `cls-text-big`);
             this.svgText2.setAttributeNS(null, 'x', point4X + (this.mWidth - (this.mWidth * 0.30 - (this.mWidth * 0.09) / 2)));
-            this.svgText2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport._isMobile ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.30));
+            this.svgText2.setAttributeNS(null, 'y', (this.acessoWebFrameSupport.isMobile() ? mBoxYCenter - point6Y : mBoxYCenter) - (this.mHeight * 0.30));
             this.svgText2.setAttributeNS(null, 'stroke', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText2.setAttributeNS(null, 'fill', this.COLOR_SILHOUETTE.SECONDARY);
             this.svgText2.setAttributeNS(null, 'style', 'writing-mode: tb;');
@@ -1718,22 +1759,22 @@ class AcessoWebFrame {
         }
     };
 
-    setTopLabelMessage = () => {
+    setTopLabelMessage() {
         this.acessoWebFramePopup.Message.style.top = `${this.cameraVideo.offsetHeight / 2 - this.mHeight / 2 - 25}px`;
     };
 
-    browserNotSupportCallback = () => {
+    browserNotSupportCallback() {
         return this.onBrowserNotSupportJS(this.acessoWebFrameSupport.browserNotSupport());
     };
 
-    resetProcessVariables = () => {
+    resetProcessVariables() {
         this.TYPE_PROCESS = null;
         this.TYPE_PROCESS_INITIAL = null;
         this.TYPE_PROCESS_DOCUMENT = null;
         this.TYPE_PROCESS_DOCUMENT_INITIAL = null;
     };
 
-    resetVariables = () => {
+    resetVariables() {
 
         this.constraints = {};
         this.constraintsBase = {
@@ -1812,7 +1853,7 @@ class AcessoWebFrame {
         }
     };
 
-    createElements = () => {
+    createElements() {
 
         if (this.boxCamera.querySelector('#camera--video')) {
             this.boxCamera.querySelector('#camera--video').remove();
@@ -1839,7 +1880,7 @@ class AcessoWebFrame {
         this.boxCamera.appendChild(camera_overlay);
     };
 
-    createBoxDocumentInfo = () => {
+    createBoxDocumentInfo() {
         let boxDocumentInfo = this.boxCamera.querySelector('#box--document-info');
         if (!boxDocumentInfo) {
             let boxInfo = document.createElement('div');
@@ -1857,18 +1898,18 @@ class AcessoWebFrame {
         }
     };
 
-    hideBoxDocumentInfo = () => {
+    hideBoxDocumentInfo() {
         let _box = this.boxCamera.querySelector('#box--document-info');
         if (_box) {
             _box.style.display = 'none';
         }
     };
 
-    setLabelDocumentInfo = () => {
+    setLabelDocumentInfo() {
         this.boxCamera.querySelector('#label--document').innerHTML = this.getLabelDocument();
     };
 
-    setControls = () => {
+    setControls() {
         this.boxCamera = document.querySelector('#box-camera');
 
         this.createElements();
@@ -1883,7 +1924,7 @@ class AcessoWebFrame {
         this.acessoWebFramePopup.boxOrientation = this.boxCamera.querySelector("#box--orientation");
     };
 
-    callAllMethodsInit = () => {
+    callAllMethodsInit() {
         this.addEventsGlobal();
         this.addClickEvent();
         this.setOrientation();
@@ -1893,13 +1934,13 @@ class AcessoWebFrame {
         this.setConfiguration();
     };
 
-    setConfiguration = () => {
+    setConfiguration() {
         if (this.TYPE_PROCESS === this.TYPE_CAMERA.CAMERA_INTELIGENCE) {
             this.setTopLabelMessage();
         }
     };
 
-    getLabelDocument = () => {
+    getLabelDocument() {
         if (this.TYPE_PROCESS_DOCUMENT === this.TYPE_DOCUMENT.CNH) {
             return 'CNH Aberta';
         } else if (this.TYPE_PROCESS_DOCUMENT === this.TYPE_DOCUMENT.CPF) {
@@ -1915,7 +1956,7 @@ class AcessoWebFrame {
         }
     };
 
-    setOrientation = () => {
+    setOrientation() {
         let orientation =
             (screen.orientation || {}).type ||
             screen.mozOrientation ||
@@ -1939,7 +1980,7 @@ class AcessoWebFrame {
             }
         }
 
-        if (this.acessoWebFrameSupport._isMobile) {
+        if (this.acessoWebFrameSupport.isMobile()) {
             if (this.videoOrientation === this.Orientation.LANDSCAPE) {
                 this.acessoWebFramePopup.showBoxLockOrientation();
             } else {
@@ -1948,11 +1989,11 @@ class AcessoWebFrame {
         }
     };
 
-    getConstraints = () => {
+    getConstraints() {
         return this.constraints;
     };
 
-    visibilityChange = () => {
+    visibilityChange() {
         if (document.hidden) {
             this.isTimerSessionContinueRunning = false;
             this.cameraVideo.pause();
@@ -1965,15 +2006,16 @@ class AcessoWebFrame {
         }
     };
 
-    addEventsGlobal = () => {
+    addEventsGlobal() {
+        let that = this;
         navigator.mediaDevices.enumerateDevices().catch(this.handleError);
-        window.addEventListener('orientationchange', this.orientationChange);
-        navigator.mediaDevices.ondevicechange = this.orientationChange;
-        document.addEventListener('visibilitychange', this.visibilityChange, false);
+        window.addEventListener('orientationchange', function() { that.orientationChange() });
+        navigator.mediaDevices.ondevicechange = function() { that.orientationChange() };
+        document.addEventListener('visibilitychange', function(){ that.visibilityChange() }, false);
     }
 
-    initCameraNormal = (COLOR_SILHOUETTE_PRIMARY, FACE_MODE) => {
-        if (!this.acessoWebFrameSupport.isSupportBrowser) {
+    initCameraNormal(COLOR_SILHOUETTE_PRIMARY, FACE_MODE) {
+        if (!this.acessoWebFrameSupport.verifyBrowserSupport()) {
             this.browserNotSupportCallback();
             return;
         }
@@ -2004,8 +2046,8 @@ class AcessoWebFrame {
         this.callAllMethodsInit();
     };
 
-    initCameraInteligence = (COLOR_SILHOUETTE_PRIMARY, COLOR_SILHOUETTE_SECONDARY, COLOR_SILHOUETTE_NEUTRAL) => {
-        if (!this.acessoWebFrameSupport.isSupportBrowser) {
+    initCameraInteligence(COLOR_SILHOUETTE_PRIMARY, COLOR_SILHOUETTE_SECONDARY, COLOR_SILHOUETTE_NEUTRAL) {
+        if (!this.acessoWebFrameSupport.verifyBrowserSupport()) {
             this.browserNotSupportCallback();
             return;
         }
@@ -2041,8 +2083,8 @@ class AcessoWebFrame {
             });
     };
 
-    initDocument = (TYPE, COLOR_SILHOUETTE_PRIMARY, LABEL_DOCUMENT_OTHERS) => {
-        if (!this.acessoWebFrameSupport.isSupportBrowser) {
+    initDocument(TYPE, COLOR_SILHOUETTE_PRIMARY, LABEL_DOCUMENT_OTHERS) {
+        if (!this.acessoWebFrameSupport.verifyBrowserSupport()) {
             this.browserNotSupportCallback();
             return;
         }
